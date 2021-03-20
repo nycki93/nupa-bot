@@ -3,15 +3,21 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./bin/main.js",
+    "test": "node ./bin/test.js",
+    "build": "tsc",
+    "clean": "rm ./bin/*"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
+    "typescript": "^4.2.3"
+  },
+  "devDependencies": {
     "eslint": "^7.22.0"
   }
 }

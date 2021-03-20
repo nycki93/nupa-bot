@@ -1,0 +1,8 @@
+{
+    "include": ["src/**/*", "test/**/*"],
+    "compilerOptions": {
+        "outDir": "bin",
+        "module": "ESNext",
+        "moduleResolution": "node"
+    },
+}
