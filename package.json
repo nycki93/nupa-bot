@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node ./bin/main.js",
-    "test": "node ./bin/test.js",
+    "test": "npm run build && node ./bin/test.js",
     "build": "tsc",
     "clean": "rm ./bin/*"
   },

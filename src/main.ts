@@ -7,10 +7,12 @@ const PREFIX = '!';
 const client = new Discord.Client();
 dotenv.config();
 
+const mono = (t) => '```' + t + '```';
+
 const state = {};
 
 client.once('ready', () => {
-	console.log('Hello, ' + process.env.NAME + '!');
+	console.log('Bot started.');
 });
 
 client.on('message', message => {
@@ -25,15 +27,15 @@ client.on('message', message => {
 	} else if (command === 'tictactoe') {
         if (args[1] === 'start') {
             state['tictactoe'] = ticTacToe.newBoard();
-            message.channel.send(ticTacToe.display(state['tictactoe']));
+            message.channel.send(mono(ticTacToe.display(state['tictactoe'])));
         } else if (args[1] === 'move') {
             const i = parseInt(args[2]);
             const { board, err } = ticTacToe.move(state['tictactoe'], i)
             if (!board) return message.channel.send(err);
             state['tictactoe'] = board;
-            message.channel.send(ticTacToe.display(state['tictactoe']));
+            message.channel.send(mono(ticTacToe.display(state['tictactoe'])));
         }
     }
-});
+}); 
 
 client.login(process.env.TOKEN);

@@ -1,10 +1,9 @@
 To install:
 
-Create a file at the top of the project called `.env`. Add these lines:
+Create a file at the top of the project called `.env`. Fill in this line:
 
 ```
 TOKEN=<your bot token>
-NAME=<your name>
 ```
 
 Do `npm install` once, to download the required libraries.
