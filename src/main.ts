@@ -1,15 +1,15 @@
 import * as Discord from 'discord.js';
 import * as dotenv from 'dotenv';
 
-import * as ticTacToe from './ticTacToe.js';
+import ticTacToe from './ticTacToe.js';
 
+dotenv.config();
 const PREFIX = '!';
 const client = new Discord.Client();
-dotenv.config();
 
-const mono = (t) => '```' + t + '```';
+const mono = (t: string) => '```' + t + '```';
 
-const state = {};
+const stateCache = {};
 
 client.once('ready', () => {
 	console.log('Bot started.');
@@ -25,15 +25,16 @@ client.on('message', message => {
 	if (command === 'ping') {
 		message.channel.send('Pong.');
 	} else if (command === 'tictactoe') {
-        if (args[1] === 'start') {
-            state['tictactoe'] = ticTacToe.newBoard();
-            message.channel.send(mono(ticTacToe.display(state['tictactoe'])));
-        } else if (args[1] === 'move') {
-            const i = parseInt(args[2]);
-            const { board, err } = ticTacToe.move(state['tictactoe'], i)
-            if (!board) return message.channel.send(err);
-            state['tictactoe'] = board;
-            message.channel.send(mono(ticTacToe.display(state['tictactoe'])));
+        const key = message.channel.id + ':tictactoe';
+        const { newState, replies } = ticTacToe({
+            state: stateCache[key] || {},
+            user: message.member.id,
+            channel: message.channel.id,
+            args,
+        })
+        stateCache[key] = newState;
+        for (const reply of replies) {
+            message.channel.send(mono(reply.message));
         }
     }
 }); 

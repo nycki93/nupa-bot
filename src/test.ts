@@ -1,4 +1,4 @@
-import * as ticTacToe from './ticTacToe.js';
+import ticTacToe from './ticTacToe.js';
 
 interface TestResult {
     pass: boolean;
@@ -9,10 +9,49 @@ interface TestResult {
 const tests: Record<string, () => TestResult> = {};
 
 tests.ticTacToe_blankBoard = function() {
-    const board = ticTacToe.newBoard();
-    const actual = ticTacToe.display(board);
+    const { replies } = ticTacToe({ 
+        state: {},
+        channel: 'aaa', 
+        user: 'bbb', 
+        args: ['ccc', 'start'],
+    });
+    const first = replies[Symbol.iterator]().next();
+    if (first.done) return {
+        pass: false,
+        actual: '0 replies',
+        expected: '1 reply',
+    }
+    const actual = first.value.message;
     const expected = (''
         + '   |   |   \n'
+        + '---+---+---\n'
+        + '   |   |   \n'
+        + '---+---+---\n'
+        + '   |   |   \n'
+    );
+    return {
+        pass: actual === expected,
+        actual,
+        expected,
+    }
+}
+
+tests.ticTacToe_move = function() {
+    const { newState: state1 } = ticTacToe({
+        state: {},
+        channel: 'aaa',
+        user: 'bbb',
+        args: ['ccc', 'start'],
+    })
+    const { replies } = ticTacToe({
+        state: state1,
+        channel: 'aaa',
+        user: 'bbb',
+        args: ['ccc', 'move', '2'],
+    })
+    const actual = replies[Symbol.iterator]().next().value.message;
+    const expected = (''
+        + '   | X |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
         + '---+---+---\n'
