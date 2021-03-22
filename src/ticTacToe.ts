@@ -1,4 +1,4 @@
-import { ChatCommand, Command } from "./types";
+import { Command } from "./types";
 
 interface ticTacToeState {
     cells: Array<' '|'X'|'O'>;
