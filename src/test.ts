@@ -1,4 +1,4 @@
-import ticTacToe from './ticTacToe.js';
+import ticTacToe from './tictactoe.js';
 
 interface TestResult {
     pass: boolean;
@@ -9,19 +9,17 @@ interface TestResult {
 const tests: Record<string, () => TestResult> = {};
 
 tests.ticTacToe_blankBoard = function() {
-    const { replies } = ticTacToe({ 
-        state: {},
-        channel: 'aaa', 
-        user: 'bbb', 
-        args: ['ccc', 'start'],
+    const { replies } = ticTacToe({}, {
+        channelId: 'aaa',
+        userId: 'bbb',
+        content: 'ccc start',
     });
-    const first = replies[Symbol.iterator]().next();
-    if (first.done) return {
+    if (replies.length != 1) return {
         pass: false,
-        actual: '0 replies',
+        actual: replies.length + ' replies',
         expected: '1 reply',
     }
-    const actual = first.value.message;
+    const actual = replies[0].content;
     const expected = (''
         + '   |   |   \n'
         + '---+---+---\n'
@@ -37,19 +35,17 @@ tests.ticTacToe_blankBoard = function() {
 }
 
 tests.ticTacToe_move = function() {
-    const { newState: state1 } = ticTacToe({
-        state: {},
-        channel: 'aaa',
-        user: 'bbb',
-        args: ['ccc', 'start'],
-    })
-    const { replies } = ticTacToe({
-        state: state1,
-        channel: 'aaa',
-        user: 'bbb',
-        args: ['ccc', 'move', '2'],
-    })
-    const actual = replies[Symbol.iterator]().next().value.message;
+    const { state: state1 } = ticTacToe({}, {
+        userId: 'aaa',
+        channelId: 'bbb',
+        content: 'ccc start',
+    });
+    const { replies } = ticTacToe(state1, {
+        userId: 'ddd',
+        channelId: 'bbb',
+        content: 'ccc move 2',
+    });
+    const actual = replies[0].content;
     const expected = (''
         + '   | X |   \n'
         + '---+---+---\n'

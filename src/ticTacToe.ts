@@ -1,4 +1,4 @@
-import { ChatCommand } from "./types";
+import { ChatCommand, Command } from "./types";
 
 interface ticTacToeState {
     cells: Array<' '|'X'|'O'>;
@@ -40,44 +40,28 @@ function move(
     };
 }
 
-const command: ChatCommand = ({
-    state, user, channel, args,
-}: { 
-    state: ticTacToeState, 
-    user: string, 
-    channel: string, 
-    args: string[],
-}) => {
-    if (args.length == 2 && args[1] === 'start') {
+const command: Command = (state, message) => {
+    const { userId, channelId, content } = message;
+    const args = message.content.split(/\s+/);
+    if (args.length === 2 && args[1] === 'start') {
         const newState = newBoard();
-        return {
-            newState,
-            replies: [{ 
-                channel, 
-                user,
-                message: display(newState),
-            }],
-        };
+        return { state: newState, replies: [
+            { userId, channelId, content: display(newState) },
+        ]};
     } else if (args.length == 3 && args[1] === 'move') {
         const position = parseInt(args[2]);
         const { newState, error } = move(state as ticTacToeState, position);
-        return {
-            newState,
-            replies: [{
-                channel,
-                user,
-                message: error || display(newState),
-            }]
-        }
+        return { state: newState, replies: [
+            { userId, channelId, content: error || display(newState) },
+        ]};
     }
 
-    return { 
-        newState: state, 
-        replies: [{
-            channel,
-            user,
-            message: "Commands: start, move",
-        }]
-    }
+    return { state, replies: [
+        { userId, channelId, content: (''
+            + 'Usage:\n'
+            + 'start\n'
+            + 'move <position>\n'
+        )}
+    ]};
 };
 export default command;

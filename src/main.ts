@@ -1,7 +1,7 @@
 import * as Discord from 'discord.js';
 import * as dotenv from 'dotenv';
 
-import ticTacToe from './ticTacToe.js';
+import tictactoe from './tictactoe.js';
 import { Client, Command, Message } from './types.js';
 
 dotenv.config();
@@ -34,22 +34,7 @@ const commands: {[key: string]: Command} = {
             content: 'pong!',
         }],
     }),
-    tictactoe: (state: any, message: Message) => {
-        const { newState, replies } = ticTacToe({
-            state, 
-            user: message.userId, 
-            channel: message.channelId, 
-            args: message.content.split(/\s+/),
-        });
-        return { 
-            state: newState, 
-            replies: Array.from(replies).map(r => ({
-                userId: r.user,
-                channelId: r.channel,
-                content: r.message,
-            })),
-        };
-    },
+    tictactoe,
 }
 
 const stateCache = {};
