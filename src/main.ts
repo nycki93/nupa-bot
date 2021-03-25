@@ -1,29 +1,29 @@
-import * as Discord from 'discord.js';
-import * as dotenv from 'dotenv';
-
+import * as fs from 'fs';
+import { DiscordClient } from './client.js';
 import tictactoe from './tictactoe.js';
-import { Client, Command, Message } from './types.js';
+import { Command, Message } from './types.js';
 
-dotenv.config();
-const PREFIX = '!';
-
-const dc = new Discord.Client();
-const client: Client = {
-    on: (messageHandler) => dc.on('message', discordMessage => (
-        messageHandler({
-            userId: discordMessage.member.id,
-            channelId: discordMessage.channel.id,
-            content: discordMessage.content,
-        })
-    )),
-    send: (message) => (dc.channels
-        .fetch(message.channelId)
-        .then(c => (c as Discord.TextChannel)
-            .send('```' + message.content + '```'))
-    ),
+const defaultConfig = {
+    version: '1',
+    discord: {
+        token: '',
+        prefix: '!',
+    }
 }
-dc.once('ready', () => console.log('Bot started.'));
-dc.login(process.env.TOKEN);
+
+const configJson = fs.readFileSync('config.json').toString() || '{}';
+const config = { 
+    ...defaultConfig, 
+    ...JSON.parse(configJson),
+}
+fs.writeFileSync('config.json', JSON.stringify(config, null, 2));
+//fs.closeSync(configFile);
+
+if (!config.discord.token) {
+    console.log("Please provide a bot token in config.json.");
+    process.exit(0);
+}
+const client = DiscordClient(config.discord);
 
 const commands: {[key: string]: Command} = {
     ping: (state: any, message: Message) => ({
@@ -38,17 +38,15 @@ const commands: {[key: string]: Command} = {
 }
 
 const stateCache = {};
-
-client.on(message => {
-    const m = message.content.match('^' + PREFIX + '((\\w+).*)$');
-    if (!m || !m[2]) return;
-    const content = m[1];
-    const keyword = m[2];
-    
+client.on('message', message => {
+    const m = message.content.match(/^\w+/);
+    if (!m || !m[0]) return;
+    const keyword = m[0];
     if (!(keyword in commands)) return;
+
     const command = commands[keyword];
     const oldState = stateCache[keyword] || {};
-    const { state, replies } = command(oldState, {...message, content});
+    const { state, replies } = command(oldState, message);
     stateCache[keyword] = state;
     replies.forEach(client.send);
 });
