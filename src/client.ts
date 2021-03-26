@@ -1,4 +1,6 @@
+import * as readline from 'readline';
 import * as Discord from 'discord.js';
+import { Readable, Writable } from 'node:stream';
 
 interface Message {
     userId: string,
@@ -26,9 +28,9 @@ export function DiscordClient(params: {
     const client: Client = {
         on: (eventType, eventHandler) => {
             if (eventType !== 'message') return;
-            return dc.on('message', discordMessage => {
+            dc.on('message', discordMessage => {
                 if (!discordMessage.content.startsWith(prefix)) return;
-                return eventHandler({
+                eventHandler({
                     userId: discordMessage.member.id,
                     channelId: discordMessage.channel.id,
                     content: discordMessage.content.slice(prefix.length),
@@ -43,5 +45,29 @@ export function DiscordClient(params: {
     }
     dc.once('ready', () => console.log('Bot started.'));
     dc.login(token);
+    return client;
+}
+
+export function ConsoleClient(params: {
+    input: Readable,
+    output: Writable
+}) {
+    const { input, output } = params;
+    const rl = readline.createInterface({input, output});
+    const client: Client = {
+        on: function(eventType, eventHandler) {
+            if (eventType !== 'message') return;
+            rl.on('line', line => {
+                eventHandler({
+                    channelId: ':console',
+                    userId: ':console',
+                    content: line,
+                })
+            })
+        },
+        send: function(message) {
+            console.log(message.content);
+        },
+    }
     return client;
 }

@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { DiscordClient } from './client.js';
+import { ConsoleClient, DiscordClient } from './client.js';
 import tictactoe from './tictactoe.js';
 import { Command, Message } from './types.js';
 
@@ -23,7 +23,11 @@ if (!config.discord.token) {
     console.log("Please provide a bot token in config.json.");
     process.exit(0);
 }
-const client = DiscordClient(config.discord);
+//const client = DiscordClient(config.discord);
+const client = ConsoleClient({
+    input: process.stdin,
+    output: process.stdout,
+});
 
 const commands: {[key: string]: Command} = {
     ping: (state: any, message: Message) => ({
