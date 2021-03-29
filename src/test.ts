@@ -1,78 +1,108 @@
+import * as main from './main.js';
 import ticTacToe from './tictactoe.js';
 
-interface TestResult {
-    pass: boolean;
-    expected: any;
-    actual: any;
+function assertEqual(actual: any, expected: any) {
+    const actualStr = JSON.stringify(actual, null, 2);
+    const expectStr = JSON.stringify(expected, null, 2);
+    if (actualStr === expectStr) return;
+    console.error('Expected:\n' + expectStr);
+    console.error('Actual:\n' + actualStr);
+    process.exit(1);
 }
 
-const tests: Record<string, () => TestResult> = {};
-
-tests.ticTacToe_blankBoard = function() {
-    const { replies } = ticTacToe({}, {
-        channelId: 'aaa',
-        userId: 'bbb',
-        content: 'ccc start',
+function test_ping() {
+    console.log('test_ping()');
+    const intent = main.command({
+        channelId: 'test_channel',
+        userId: 'test_user',
+        content: 'ping',
+        state: {},
+    })
+    assertEqual(intent, {
+        type: 'MESSAGE',
+        channelId: 'test_channel',
+        content: 'pong!',
+        state: {},
     });
-    if (replies.length != 1) return {
-        pass: false,
-        actual: replies.length + ' replies',
-        expected: '1 reply',
-    }
-    const actual = replies[0].content;
-    const expected = (''
+}
+
+function test_tictactoe_blankBoard() {
+    console.log('test_tictactoe_blankBoard()');
+    const intent = main.command({
+        channelId: 'test_channel',
+        userId: 'test_user',
+        content: 'tictactoe start',
+        state: {},
+    });
+    const board0 = (''
         + '   |   |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
     );
-    return {
-        pass: actual === expected,
-        actual,
-        expected,
-    }
+    assertEqual(intent, {
+        type: 'MESSAGE',
+        channelId: 'test_channel',
+        content: board0,
+        state: {
+            'tictactoe:test_channel': {
+                mode: 'STARTED',
+                turn: 'X',
+                board: [
+                    ' ', ' ', ' ',
+                    ' ', ' ', ' ',
+                    ' ', ' ', ' ',
+                ],
+            }
+        }
+    });
 }
 
-tests.ticTacToe_move = function() {
-    const { state: state1 } = ticTacToe({}, {
-        userId: 'aaa',
-        channelId: 'bbb',
-        content: 'ccc start',
+function test_tictactoe_moveOnce() {
+    const intent0 = main.command({
+        userId: 'alice',
+        channelId: 'test_channel',
+        content: 'tictactoe start',
+        state: {},
     });
-    const { replies } = ticTacToe(state1, {
-        userId: 'ddd',
-        channelId: 'bbb',
-        content: 'ccc move 2',
+    const intent1 = main.command({
+        userId: 'alice',
+        channelId: 'test_channel',
+        content: 'tictactoe move 2',
+        state: intent0.state,
     });
-    const actual = replies[0].content;
-    const expected = (''
+    const board = (''
         + '   | X |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
     );
-    return {
-        pass: actual === expected,
-        actual,
-        expected,
-    }
+    assertEqual(intent1, {
+        type: 'MESSAGE',
+        channelId: 'test_channel',
+        content: board,
+        state: {
+            'tictactoe:test_channel': {
+                mode: 'STARTED',
+                turn: 'O',
+                board: [
+                    ' ', 'X', ' ',
+                    ' ', ' ', ' ',
+                    ' ', ' ', ' ',
+                ],
+            }
+        }
+    })
 }
 
-function main() {
-    const keys = Object.keys(tests);
-    keys.forEach(key => {
-        const result = tests[key]();
-        if (result.pass) return;
-        console.log(''
-            + 'Failed test ' + key + '.\n'
-            + 'Expected:\n' + result.expected + '\n'
-            + 'But got:\n' + result.actual + '\n'
-        );
-        process.exit(1);
-    })
-    console.log(keys.length + ' tests OK. \n');
+function runTests() {
+    test_ping();
+    test_tictactoe_blankBoard();
+    //test_tictactoe_moveOnce();
+    console.log("All tests OK.");
     process.exit(0);
 }
-main();
+
+if (require.main === module) runTests();

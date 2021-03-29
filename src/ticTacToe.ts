@@ -1,24 +1,15 @@
-import { Command } from "./types.js";
-
 interface ticTacToeState {
     cells: Array<' '|'X'|'O'>;
     turn?: 'X'|'O';
 }
 
-function newBoard() {
-    return ({
-        cells: Array.from({ length: 9 }).fill(' '),
-        turn: 'X',
-    });
-}
-
-function display({ cells }) {
+function display(board) {
     return (''
-        + ' ' + cells[0] + ' | ' + cells[1] + ' | ' + cells[2] + ' \n'
+        + ' ' + board[0] + ' | ' + board[1] + ' | ' + board[2] + ' \n'
         + '---+---+---\n'
-        + ' ' + cells[3] + ' | ' + cells[4] + ' | ' + cells[5] + ' \n'
+        + ' ' + board[3] + ' | ' + board[4] + ' | ' + board[5] + ' \n'
         + '---+---+---\n'
-        + ' ' + cells[6] + ' | ' + cells[7] + ' | ' + cells[8] + ' \n'
+        + ' ' + board[6] + ' | ' + board[7] + ' | ' + board[8] + ' \n'
     );
 }
 
@@ -40,28 +31,40 @@ function move(
     };
 }
 
-const command: Command = (state, message) => {
-    const { userId, channelId, content } = message;
-    const args = message.content.split(/\s+/);
+const command = (params: {
+    userId: string,
+    channelId: string,
+    content: string,
+    state: any,
+}) => {
+    const { userId, channelId, content, state } = params;
+    const args = content.split(/\s+/);
+    const gameKey = 'tictactoe:' + channelId;
     if (args.length === 2 && args[1] === 'start') {
-        const newState = newBoard();
-        return { state: newState, replies: [
-            { userId, channelId, content: display(newState) },
-        ]};
-    } else if (args.length == 3 && args[1] === 'move') {
-        const position = parseInt(args[2]);
-        const { newState, error } = move(state as ticTacToeState, position);
-        return { state: newState, replies: [
-            { userId, channelId, content: error || display(newState) },
-        ]};
+        const board = Array.from({ length: 9 }).fill(' ');
+        return { 
+            type: 'MESSAGE',
+            channelId,
+            content: display(board),
+            state: {
+                ...state,
+                [gameKey]: {
+                    mode: 'STARTED',
+                    turn: 'X',
+                    board,
+                }
+            }
+        };
     }
-
-    return { state, replies: [
-        { userId, channelId, content: (''
+    return {
+        type: 'MESSAGE',
+        channelId,
+        state,
+        content: (''
             + 'Usage:\n'
             + 'start\n'
             + 'move <position>\n'
-        )}
-    ]};
+        ),
+    };
 };
 export default command;
