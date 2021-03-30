@@ -12,18 +12,14 @@ function assertEqual(actual: any, expected: any) {
 
 function test_ping() {
     console.log('test_ping()');
-    const intent = main.command({
+    const intent: any = main.command({
         channelId: 'test_channel',
         userId: 'test_user',
         content: 'ping',
-        state: {},
     })
-    assertEqual(intent, {
-        type: 'MESSAGE',
-        channelId: 'test_channel',
-        content: 'pong!',
-        state: {},
-    });
+    assertEqual(intent.type, 'MESSAGE');
+    assertEqual(intent.channelId, 'test_channel');
+    assertEqual(intent.content, 'pong!');
 }
 
 function test_tictactoe_blankBoard() {
@@ -32,31 +28,16 @@ function test_tictactoe_blankBoard() {
         channelId: 'test_channel',
         userId: 'test_user',
         content: 'tictactoe start',
-        state: {},
     });
-    const board0 = (''
+    assertEqual(intent.type, 'MESSAGE');
+    assertEqual(intent.channelId, 'test_channel');
+    assertEqual(intent.content, ''
         + '   |   |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
     );
-    assertEqual(intent, {
-        type: 'MESSAGE',
-        channelId: 'test_channel',
-        content: board0,
-        state: {
-            'tictactoe:test_channel': {
-                mode: 'STARTED',
-                turn: 'X',
-                board: [
-                    ' ', ' ', ' ',
-                    ' ', ' ', ' ',
-                    ' ', ' ', ' ',
-                ],
-            }
-        }
-    });
 }
 
 function test_tictactoe_moveOnce() {
@@ -64,7 +45,6 @@ function test_tictactoe_moveOnce() {
         userId: 'alice',
         channelId: 'test_channel',
         content: 'tictactoe start',
-        state: {},
     });
     const intent1 = main.command({
         userId: 'alice',
@@ -72,29 +52,15 @@ function test_tictactoe_moveOnce() {
         content: 'tictactoe move 2',
         state: intent0.state,
     });
-    const board = (''
+    assertEqual(intent1.type, 'MESSAGE');
+    assertEqual(intent1.channelId, 'test_channel');
+    assertEqual(intent1.content, ''
         + '   | X |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
     );
-    assertEqual(intent1, {
-        type: 'MESSAGE',
-        channelId: 'test_channel',
-        content: board,
-        state: {
-            'tictactoe:test_channel': {
-                mode: 'STARTED',
-                turn: 'O',
-                board: [
-                    ' ', 'X', ' ',
-                    ' ', ' ', ' ',
-                    ' ', ' ', ' ',
-                ],
-            }
-        }
-    })
 }
 
 function runTests() {

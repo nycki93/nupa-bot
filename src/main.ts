@@ -11,18 +11,20 @@ const defaultConfig = {
     }
 }
 
-const configJson = fs.readFileSync('config.json').toString() || '{}';
-const config = { 
-    ...defaultConfig, 
-    ...JSON.parse(configJson),
-}
-fs.writeFileSync('config.json', JSON.stringify(config, null, 2));
+// const configJson = fs.readFileSync('config.json').toString() || '{}';
+// const config = { 
+//     ...defaultConfig, 
+//     ...JSON.parse(configJson),
+// }
+// fs.writeFileSync('config.json', JSON.stringify(config, null, 2));
 //fs.closeSync(configFile);
+const config = defaultConfig;
 
-if (!config.discord.token) {
-    console.log("Please provide a bot token in config.json.");
-    process.exit(0);
-}
+// if (!config.discord.token) {
+//     console.log("Please provide a bot token in config.json.");
+//     process.exit(0);
+// }
+
 //const client = DiscordClient(config.discord);
 const client = ConsoleClient({
     input: process.stdin,
@@ -31,13 +33,11 @@ const client = ConsoleClient({
 
 function ping(params: { 
     channelId: string,
-    state: any,
 }) {
     return {
         type: 'MESSAGE',
         channelId: params.channelId,
         content: 'pong!',
-        state: params.state,
     }
 };
 
@@ -45,14 +45,20 @@ export function command(params: {
     userId: string,
     channelId: string,
     content: string,
-    state: any,
-}) { 
+    state?: any,
+}): {
+    type: string,
+    [key: string]: any
+} { 
+    const { userId, channelId, content } = params;
+    const state = params.state ?? {};
     const m = params.content.match(/^\w+/);
     const keyword = m && m[0];
-    if (keyword === 'ping') return ping(params);
-    if (keyword === 'tictactoe') return tictactoe(params);
+    if (keyword === 'ping') return ping({ channelId });
+    if (keyword === 'tictactoe') return tictactoe({ 
+        userId, channelId, content, state,
+    });
     return {
         type: 'NONE',
-        state: params.state,
     }
 };
