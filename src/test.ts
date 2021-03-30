@@ -1,5 +1,6 @@
-import * as main from './main.js';
-import ticTacToe from './tictactoe.js';
+import { command } from './command.js';
+import { Intent, IntentMessage } from './types.js';
+
 
 function assertEqual(actual: any, expected: any) {
     const actualStr = JSON.stringify(actual, null, 2);
@@ -10,28 +11,40 @@ function assertEqual(actual: any, expected: any) {
     process.exit(1);
 }
 
+class TestBot {
+    state: any;
+    intent: Intent;
+    constructor() {
+        this.state = {};
+    }
+    send(room, user, text) {
+        const { intent, state } = command({ room, user, text }, this.state);
+        this.state = state;
+        this.intent = intent;
+    }
+}
+
 function test_ping() {
     console.log('test_ping()');
-    const intent: any = main.command({
-        channelId: 'test_channel',
-        userId: 'test_user',
-        content: 'ping',
-    })
-    assertEqual(intent.type, 'MESSAGE');
-    assertEqual(intent.channelId, 'test_channel');
-    assertEqual(intent.content, 'pong!');
+    const bot = new TestBot();
+    bot.send('test_channel', 'test_user', 'ping');
+    assertEqual(bot.intent.type, 'MESSAGE');
+    const message = (bot.intent as IntentMessage);
+    assertEqual(message.room, 'test_channel');
+    assertEqual(message.text, 'pong!');
 }
 
 function test_tictactoe_blankBoard() {
     console.log('test_tictactoe_blankBoard()');
-    const intent = main.command({
-        channelId: 'test_channel',
-        userId: 'test_user',
-        content: 'tictactoe start',
-    });
-    assertEqual(intent.type, 'MESSAGE');
-    assertEqual(intent.channelId, 'test_channel');
-    assertEqual(intent.content, ''
+    const bot = new TestBot();
+    bot.send('test_channel', 'alice', 'play tictactoe');
+    bot.send('test_channel', 'alice', 'join x');
+    bot.send('test_channel', 'bob', 'join o');
+    bot.send('test_channel', 'alice', 'start');
+    assertEqual(bot.intent.type, 'MESSAGE');
+    const message = (bot.intent as IntentMessage);
+    assertEqual(message.room, 'test_channel');
+    assertEqual(message.text, ''
         + '   |   |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
@@ -41,20 +54,16 @@ function test_tictactoe_blankBoard() {
 }
 
 function test_tictactoe_moveOnce() {
-    const intent0 = main.command({
-        userId: 'alice',
-        channelId: 'test_channel',
-        content: 'tictactoe start',
-    });
-    const intent1 = main.command({
-        userId: 'alice',
-        channelId: 'test_channel',
-        content: 'tictactoe move 2',
-        state: intent0.state,
-    });
-    assertEqual(intent1.type, 'MESSAGE');
-    assertEqual(intent1.channelId, 'test_channel');
-    assertEqual(intent1.content, ''
+    console.log('test_tictactoe_moveOnce()');
+    const bot = new TestBot();
+    bot.send('test_room', 'alice', 'play tictactoe');
+    bot.send('test_room', 'alice', 'join x');
+    bot.send('test_room', 'alice', 'join o');
+    bot.send('test_room', 'alice', 'move 2');
+    assertEqual(bot.intent.type, 'MESSAGE');
+    const message = (bot.intent as IntentMessage);
+    assertEqual(message.room, 'test_room');
+    assertEqual(message.text, ''
         + '   | X |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
