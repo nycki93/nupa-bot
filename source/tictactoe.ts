@@ -1,7 +1,10 @@
 import { Message } from "./types";
 
+type Shape = ' '|'X'|'O'
+
 type TictactoeState = {
-    board: Array<' '|'X'|'O'>,
+    board: Array<Shape>,
+    turn: Shape,
 }
 
 function display(state: TictactoeState) {
@@ -16,8 +19,11 @@ function display(state: TictactoeState) {
 }
 
 export function start(message: Message, state: TictactoeState) {
-    const newState = { ...state };
-    newState.board = Array(9).fill(' ');
+    const newState = { 
+        ...state,
+        board: Array(9).fill(' '),
+        turn: 'X' as const,
+    };
     return {
         intent: {
             type: 'MESSAGE' as const,
@@ -49,8 +55,12 @@ export function move(message: Message, state: TictactoeState) {
         state,
     }
     const newBoard = [...state.board];
-    newBoard[position-1] = 'X';
-    const newState = { ...state, board: newBoard }
+    newBoard[position-1] = state.turn;
+    const newState = { 
+        ...state, 
+        board: newBoard,
+        turn: (state.turn === 'X' ? 'O' as const : 'X' as const),
+    }
     return {
         intent: {
             type: 'MESSAGE' as const,

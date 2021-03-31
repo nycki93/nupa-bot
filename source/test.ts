@@ -90,14 +90,27 @@ function test_tictactoe_moveTwice() {
         + '---+---+---\n'
         + '   |   |   \n'
     );
+}
 
+function test_tictactoe_wrongPlayer() {
+    const bot = new TestBot();
+    bot.send('test_room', 'alice', 'play tictactoe');
+    bot.send('test_room', 'alice', 'join x');
+    bot.send('test_room', 'bob', 'join o');
+    bot.send('test_room', 'bob', 'start');
+    bot.send('test_room', 'bob', 'move 5');
+    assertEqual(bot.intent.type, 'MESSAGE');
+    const intent = (bot.intent as IntentMessage);
+    assertEqual(intent.room, 'test_room');
+    assertEqual(intent.text, 'It is not your turn!');
 }
 
 function runTests() {
     test_ping();
     test_tictactoe_blankBoard();
     test_tictactoe_moveOnce();
-    // test_tictactoe_moveTwice();
+    test_tictactoe_moveTwice();
+    // test_tictactoe_wrongPlayer();
     console.log("All tests OK.");
     process.exit(0);
 }
