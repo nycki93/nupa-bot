@@ -59,6 +59,7 @@ function test_tictactoe_moveOnce() {
     bot.send('test_room', 'alice', 'play tictactoe');
     bot.send('test_room', 'alice', 'join x');
     bot.send('test_room', 'alice', 'join o');
+    bot.send('test_room', 'alice', 'start');
     bot.send('test_room', 'alice', 'move 2');
     assertEqual(bot.intent.type, 'MESSAGE');
     const message = (bot.intent as IntentMessage);
@@ -75,7 +76,7 @@ function test_tictactoe_moveOnce() {
 function runTests() {
     test_ping();
     test_tictactoe_blankBoard();
-    //test_tictactoe_moveOnce();
+    test_tictactoe_moveOnce();
     console.log("All tests OK.");
     process.exit(0);
 }

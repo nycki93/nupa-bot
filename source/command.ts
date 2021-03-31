@@ -19,14 +19,18 @@ function play(message: Message, state: any) {
 }
 
 function join(message: Message, state: any) {
-    return { state, intent: NO_INTENT }
+    return { state, intent: NO_INTENT };
 }
 
 function start(message: Message, state: any) {
-    return tictactoe.start(message, state)
+    return tictactoe.start(message, state);
 }
 
-const commands = { ping, play, join, start };
+function move(message: Message, state: any) {
+    return tictactoe.move(message, state);
+}
+
+const commands = { ping, play, join, start, move };
 
 export function command(
     message: Message, state: any = {}
