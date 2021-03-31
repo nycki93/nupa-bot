@@ -3,11 +3,9 @@ import { Intent, IntentMessage } from './types.js';
 
 
 function assertEqual(actual: any, expected: any) {
-    const actualStr = JSON.stringify(actual, null, 2);
-    const expectStr = JSON.stringify(expected, null, 2);
-    if (actualStr === expectStr) return;
-    console.error('Expected:\n' + expectStr);
-    console.error('Actual:\n' + actualStr);
+    if (actual === expected) return;
+    console.error('Expected:\n' + expected);
+    console.error('Actual:\n' + actual);
     process.exit(1);
 }
 
@@ -62,9 +60,9 @@ function test_tictactoe_moveOnce() {
     bot.send('test_room', 'alice', 'start');
     bot.send('test_room', 'alice', 'move 2');
     assertEqual(bot.intent.type, 'MESSAGE');
-    const message = (bot.intent as IntentMessage);
-    assertEqual(message.room, 'test_room');
-    assertEqual(message.text, ''
+    const intent = (bot.intent as IntentMessage);
+    assertEqual(intent.room, 'test_room');
+    assertEqual(intent.text, ''
         + '   | X |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
@@ -73,10 +71,33 @@ function test_tictactoe_moveOnce() {
     );
 }
 
+function test_tictactoe_moveTwice() {
+    console.log('test_tictactoe_moveTwice()');
+    const bot = new TestBot();
+    bot.send('test_room', 'alice', 'play tictactoe');
+    bot.send('test_room', 'bob', 'join x');
+    bot.send('test_room', 'alice', 'join o');
+    bot.send('test_room', 'bob', 'start');
+    bot.send('test_room', 'bob', 'move 5');
+    bot.send('test_room', 'alice', 'move 1');
+    assertEqual(bot.intent.type, 'MESSAGE');
+    const intent = (bot.intent as IntentMessage);
+    assertEqual(intent.room, 'test_room');
+    assertEqual(intent.text, ''
+        + ' O |   |   \n'
+        + '---+---+---\n'
+        + '   | X |   \n'
+        + '---+---+---\n'
+        + '   |   |   \n'
+    );
+
+}
+
 function runTests() {
     test_ping();
     test_tictactoe_blankBoard();
     test_tictactoe_moveOnce();
+    // test_tictactoe_moveTwice();
     console.log("All tests OK.");
     process.exit(0);
 }
