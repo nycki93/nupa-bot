@@ -4,9 +4,9 @@
   "description": "",
   "main": "build/main.js",
   "scripts": {
-    "start": "node ./bin/main.js discord",
-    "console": "tsc && node ./bin/main.js console",
-    "test": "tsc && node ./bin/test.js",
+    "start": "node ./build/main.js discord",
+    "console": "tsc && node ./build/main.js console",
+    "test": "tsc && node ./build/test.js",
     "tsc": "tsc"
   },
   "author": "",
