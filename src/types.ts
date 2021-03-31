@@ -1,16 +1,17 @@
-export interface Message {
-    userId: string,
-    channelId: string,
-    content: string,
-}
+export type Message = {
+    user: string,
+    room: string,
+    text: string,
+};
 
-export interface Client {
-    on: (messageHandler: (message: Message) => void) => void;
-    send: (message: Message) => void;
-}
+export type IntentNone = { 
+    type: 'NONE',
+};
 
-export type Command = (
-    state: any, message: Message,
-) => {
-    state: any, replies: Message[],
-}
+export type IntentMessage = { 
+    type: 'MESSAGE', 
+    room: string, 
+    text: string,
+};
+
+export type Intent = IntentNone | IntentMessage;

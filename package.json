@@ -2,13 +2,12 @@
   "name": "discord-js-sandbox",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "type": "module",
+  "main": "build/main.js",
   "scripts": {
-    "start": "npm test && node ./bin/main.js",
-    "test": "npm run build && node ./bin/test.js",
-    "build": "tsc",
-    "clean": "rm ./bin/*"
+    "start": "node ./bin/main.js discord",
+    "console": "tsc && node ./bin/main.js console",
+    "test": "tsc && node ./bin/test.js",
+    "tsc": "tsc"
   },
   "author": "",
   "license": "ISC",

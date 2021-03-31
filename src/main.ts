@@ -1,56 +1,73 @@
+import * as readline from 'readline';
+import * as discord from 'discord.js';
+import { command } from './command';
 import * as fs from 'fs';
-import { ConsoleClient, DiscordClient } from './client.js';
-import tictactoe from './tictactoe.js';
-import { Command, Message } from './types.js';
 
-const defaultConfig = {
-    version: '1',
-    discord: {
-        token: '',
-        prefix: '!',
+function main()
+{ 
+    console.log(JSON.stringify(process.argv, null, 2));
+    if (process.argv[2] == 'console') {
+        consoleMain();
+    } else if (process.argv[2] == 'discord') {
+        discordMain();
+    } else {
+        console.info('Options: console, discord');
+        process.exit(0);
     }
 }
 
-const configJson = fs.readFileSync('config.json').toString() || '{}';
-const config = { 
-    ...defaultConfig, 
-    ...JSON.parse(configJson),
-}
-fs.writeFileSync('config.json', JSON.stringify(config, null, 2));
-//fs.closeSync(configFile);
-
-if (!config.discord.token) {
-    console.log("Please provide a bot token in config.json.");
-    process.exit(0);
-}
-//const client = DiscordClient(config.discord);
-const client = ConsoleClient({
-    input: process.stdin,
-    output: process.stdout,
-});
-
-const commands: {[key: string]: Command} = {
-    ping: (state: any, message: Message) => ({
-        state,
-        replies: [{
-            userId: message.userId,
-            channelId: message.channelId,
-            content: 'pong!',
-        }],
-    }),
-    tictactoe,
+function consoleMain() 
+{
+    const rl = readline.createInterface(process.stdin, process.stdout);
+    let state = {};
+    rl.on('line', line => {
+        const reply = command({
+            room: 'console',
+            user: 'console',
+            text: line,
+        }, state);
+        state = reply.state;
+        if (reply.intent.type === 'MESSAGE') {
+            rl.write(reply.intent.text);
+        }
+    });
 }
 
-const stateCache = {};
-client.on('message', message => {
-    const m = message.content.match(/^\w+/);
-    if (!m || !m[0]) return;
-    const keyword = m[0];
-    if (!(keyword in commands)) return;
+async function discordMain() 
+{    
+    const fp = fs.openSync('config.json', 'w+');
+    const config = {
+        discord: { 
+            prefix: '!',
+            token: '',
+        },
+        ...JSON.parse(fs.readFileSync(fp).toString() || '{}'),
+    };
+    fs.writeFileSync(fp, JSON.stringify(config, null, 2));
+    fs.closeSync(fp);
 
-    const command = commands[keyword];
-    const oldState = stateCache[keyword] || {};
-    const { state, replies } = command(oldState, message);
-    stateCache[keyword] = state;
-    replies.forEach(client.send);
-});
+    if (!config.discord.token) {
+        console.log('Please add a valid discord token to config.json.');
+        process.exit(0);
+    }
+
+    const dc = new discord.Client;
+    let state = {};
+    dc.on('message', async message => {
+        const reply = command({
+            room: message.channel.id,
+            user: message.member.id,
+            text: message.content,
+        }, state);
+        state = reply.state;
+        if (reply.intent.type === 'MESSAGE') {
+            let room = await dc.channels.fetch(reply.intent.room);
+            if (room.isText()) {
+                room.send('```' + reply.intent.text + '```');
+            }
+        }
+    });
+    dc.login(config.discord.token);
+}
+
+if (require.main === module) main();

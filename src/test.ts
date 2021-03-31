@@ -1,78 +1,83 @@
-import ticTacToe from './tictactoe.js';
+import { command } from './command.js';
+import { Intent, IntentMessage } from './types.js';
 
-interface TestResult {
-    pass: boolean;
-    expected: any;
-    actual: any;
+
+function assertEqual(actual: any, expected: any) {
+    const actualStr = JSON.stringify(actual, null, 2);
+    const expectStr = JSON.stringify(expected, null, 2);
+    if (actualStr === expectStr) return;
+    console.error('Expected:\n' + expectStr);
+    console.error('Actual:\n' + actualStr);
+    process.exit(1);
 }
 
-const tests: Record<string, () => TestResult> = {};
-
-tests.ticTacToe_blankBoard = function() {
-    const { replies } = ticTacToe({}, {
-        channelId: 'aaa',
-        userId: 'bbb',
-        content: 'ccc start',
-    });
-    if (replies.length != 1) return {
-        pass: false,
-        actual: replies.length + ' replies',
-        expected: '1 reply',
+class TestBot {
+    state: any;
+    intent: Intent;
+    constructor() {
+        this.state = {};
     }
-    const actual = replies[0].content;
-    const expected = (''
+    send(room, user, text) {
+        const { intent, state } = command({ room, user, text }, this.state);
+        this.state = state;
+        this.intent = intent;
+    }
+}
+
+function test_ping() {
+    console.log('test_ping()');
+    const bot = new TestBot();
+    bot.send('test_channel', 'test_user', 'ping');
+    assertEqual(bot.intent.type, 'MESSAGE');
+    const message = (bot.intent as IntentMessage);
+    assertEqual(message.room, 'test_channel');
+    assertEqual(message.text, 'pong!');
+}
+
+function test_tictactoe_blankBoard() {
+    console.log('test_tictactoe_blankBoard()');
+    const bot = new TestBot();
+    bot.send('test_channel', 'alice', 'play tictactoe');
+    bot.send('test_channel', 'alice', 'join x');
+    bot.send('test_channel', 'bob', 'join o');
+    bot.send('test_channel', 'alice', 'start');
+    assertEqual(bot.intent.type, 'MESSAGE');
+    const message = (bot.intent as IntentMessage);
+    assertEqual(message.room, 'test_channel');
+    assertEqual(message.text, ''
         + '   |   |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
     );
-    return {
-        pass: actual === expected,
-        actual,
-        expected,
-    }
 }
 
-tests.ticTacToe_move = function() {
-    const { state: state1 } = ticTacToe({}, {
-        userId: 'aaa',
-        channelId: 'bbb',
-        content: 'ccc start',
-    });
-    const { replies } = ticTacToe(state1, {
-        userId: 'ddd',
-        channelId: 'bbb',
-        content: 'ccc move 2',
-    });
-    const actual = replies[0].content;
-    const expected = (''
+function test_tictactoe_moveOnce() {
+    console.log('test_tictactoe_moveOnce()');
+    const bot = new TestBot();
+    bot.send('test_room', 'alice', 'play tictactoe');
+    bot.send('test_room', 'alice', 'join x');
+    bot.send('test_room', 'alice', 'join o');
+    bot.send('test_room', 'alice', 'move 2');
+    assertEqual(bot.intent.type, 'MESSAGE');
+    const message = (bot.intent as IntentMessage);
+    assertEqual(message.room, 'test_room');
+    assertEqual(message.text, ''
         + '   | X |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
     );
-    return {
-        pass: actual === expected,
-        actual,
-        expected,
-    }
 }
 
-function main() {
-    const keys = Object.keys(tests);
-    keys.forEach(key => {
-        const result = tests[key]();
-        if (result.pass) return;
-        console.log(''
-            + 'Failed test ' + key + '.\n'
-            + 'Expected:\n' + result.expected + '\n'
-            + 'But got:\n' + result.actual + '\n'
-        );
-        process.exit(1);
-    })
-    console.log(keys.length + ' tests OK. \n');
+function runTests() {
+    test_ping();
+    test_tictactoe_blankBoard();
+    //test_tictactoe_moveOnce();
+    console.log("All tests OK.");
     process.exit(0);
 }
-main();
+
+if (require.main === module) runTests();
