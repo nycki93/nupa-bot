@@ -19,7 +19,7 @@ function play(message: Message, state: any) {
 }
 
 function join(message: Message, state: any) {
-    return { state, intent: NO_INTENT };
+    return tictactoe.join(message, state);
 }
 
 function start(message: Message, state: any) {

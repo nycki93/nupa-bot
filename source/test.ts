@@ -93,6 +93,7 @@ function test_tictactoe_moveTwice() {
 }
 
 function test_tictactoe_wrongPlayer() {
+    console.log('test_tictactoe_wrongPlayer()');
     const bot = new TestBot();
     bot.send('test_room', 'alice', 'play tictactoe');
     bot.send('test_room', 'alice', 'join x');
@@ -110,7 +111,7 @@ function runTests() {
     test_tictactoe_blankBoard();
     test_tictactoe_moveOnce();
     test_tictactoe_moveTwice();
-    // test_tictactoe_wrongPlayer();
+    test_tictactoe_wrongPlayer();
     console.log("All tests OK.");
     process.exit(0);
 }

@@ -1,10 +1,15 @@
 import { Message } from "./types";
 
-type Shape = ' '|'X'|'O'
+enum Piece {
+    NONE = ' ',
+    X = 'X',
+    O = 'O',
+};
 
 type TictactoeState = {
-    board: Array<Shape>,
-    turn: Shape,
+    board: Array<Piece>,
+    turn: Piece,
+    players: { [key in Piece]: string },
 }
 
 function display(state: TictactoeState) {
@@ -18,11 +23,31 @@ function display(state: TictactoeState) {
     );
 }
 
+export function join(message: Message, state: TictactoeState) {
+    const args = message.text.split(/\s+/);
+    const choice = (args[1] || '').toUpperCase();
+    const piece = (
+        choice === 'X' ? Piece.X
+        : choice === 'O' ? Piece.O
+        : Piece.NONE
+    );
+    return {
+        intent: { type: 'NONE' },
+        state: {
+            ...state,
+            players: {
+                ...state.players,
+                [piece]: message.user,
+            }
+        }
+    }
+}
+
 export function start(message: Message, state: TictactoeState) {
     const newState = { 
         ...state,
-        board: Array(9).fill(' '),
-        turn: 'X' as const,
+        board: Array(9).fill(Piece.NONE),
+        turn: Piece.X,
     };
     return {
         intent: {
@@ -37,6 +62,14 @@ export function start(message: Message, state: TictactoeState) {
 export function move(message: Message, state: TictactoeState) {
     const args = message.text.split(/\s+/);
     const position = args.length === 2 && parseInt(args[1]);
+    if (state.players[state.turn] !== message.user) return {
+        intent: {
+            type: 'MESSAGE' as const,
+            room: message.room,
+            text: 'It is not your turn!',
+        },
+        state,
+    }
     if (!(position >= 1 && position <= 9)) return {
         intent: {
             type: 'MESSAGE' as const,
@@ -56,10 +89,11 @@ export function move(message: Message, state: TictactoeState) {
     }
     const newBoard = [...state.board];
     newBoard[position-1] = state.turn;
+    const newTurn = (state.turn === Piece.X ? Piece.O : Piece.X);
     const newState = { 
         ...state, 
         board: newBoard,
-        turn: (state.turn === 'X' ? 'O' as const : 'X' as const),
+        turn: newTurn,
     }
     return {
         intent: {
