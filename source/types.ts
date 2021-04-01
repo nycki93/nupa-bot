@@ -1,17 +1,35 @@
-export type Message = {
+export type Query = {
     user: string,
     room: string,
     text: string,
-};
+    state: any,
+}
 
-export type IntentNone = { 
-    type: 'NONE',
-};
+export enum REPLY_TYPE {
+    NONE,
+    MESSAGE,
+    ERROR,
+}
 
-export type IntentMessage = { 
-    type: 'MESSAGE', 
+export type ReplyNone = {
+    type: REPLY_TYPE.NONE,
+}
+
+export type ReplyMessage = { 
+    type: REPLY_TYPE.MESSAGE,
     room: string, 
     text: string,
+    state: any,
 };
 
-export type Intent = IntentNone | IntentMessage;
+export type ReplyError = {
+    type: REPLY_TYPE.ERROR,
+    room: string,
+    text: string,
+}
+
+export type Reply = {
+    type: REPLY_TYPE,
+}
+
+export type Command = ((query: Query) => Reply);

@@ -1,4 +1,4 @@
-import { Message } from "./types";
+import {Query } from "./types";
 
 enum Piece {
     NONE = ' ',
@@ -23,8 +23,9 @@ function display(state: TictactoeState) {
     );
 }
 
-export function join(message: Message, state: TictactoeState) {
-    const args = message.text.split(/\s+/);
+export function join(query: Query) {
+    const state = query.state as TictactoeState;
+    const args = query.text.split(/\s+/);
     const choice = (args[1] || '').toUpperCase();
     const piece = (
         choice === 'X' ? Piece.X
@@ -37,13 +38,14 @@ export function join(message: Message, state: TictactoeState) {
             ...state,
             players: {
                 ...state.players,
-                [piece]: message.user,
+                [piece]: query.user,
             }
         }
     }
 }
 
-export function start(message: Message, state: TictactoeState) {
+export function start(query: Query) {
+    const state = query.state as TictactoeState;
     const newState = { 
         ...state,
         board: Array(9).fill(Piece.NONE),

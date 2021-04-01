@@ -1,25 +1,22 @@
-import { Intent, Message } from './types';
+import { Query, REPLY_TYPE } from './types';
 import * as tictactoe from './tictactoe';
 
 const NO_INTENT = { type: 'NONE' as const };
 
-function ping(message: Message, state: any) {
+function ping(query: Query) {
     return {
-        intent: {
-            type: 'MESSAGE' as const,
-            room: message.room,
-            text: 'pong!',
-        },
-        state,
+        type: REPLY_TYPE.MESSAGE,
+        room: query.room,
+        text: 'pong!',
     };
 };
 
-function play(message: Message, state: any) {
-    return { state, intent: NO_INTENT };
+function play(query: Query) {
+    return { type: REPLY_TYPE.NONE };
 }
 
-function join(message: Message, state: any) {
-    return tictactoe.join(message, state);
+function join(query: Query) {
+    return tictactoe.join(query);
 }
 
 function start(message: Message, state: any) {
