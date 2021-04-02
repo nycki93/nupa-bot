@@ -1,6 +1,6 @@
 import * as readline from 'readline';
 import * as discord from 'discord.js';
-import { command } from './command';
+import mainCommand from './mainCommand';
 import * as fs from 'fs';
 
 function main()
@@ -21,14 +21,15 @@ function consoleMain()
     const rl = readline.createInterface(process.stdin, process.stdout);
     let state = {};
     rl.on('line', line => {
-        const reply = command({
+        const reply = mainCommand({
             room: 'console',
             user: 'console',
             text: line,
-        }, state);
+            state,
+        });
         state = reply.state;
-        if (reply.intent.type === 'MESSAGE') {
-            rl.write(reply.intent.text);
+        if (reply.type === 'MESSAGE') {
+            rl.write(reply.text);
         }
     });
 }
@@ -54,16 +55,17 @@ async function discordMain()
     const dc = new discord.Client;
     let state = {};
     dc.on('message', async message => {
-        const reply = command({
+        const reply = mainCommand({
             room: message.channel.id,
             user: message.member.id,
             text: message.content,
-        }, state);
+            state,
+        });
         state = reply.state;
-        if (reply.intent.type === 'MESSAGE') {
-            let room = await dc.channels.fetch(reply.intent.room);
+        if (reply.type === 'MESSAGE') {
+            let room = await dc.channels.fetch(reply.room);
             if (room.isText()) {
-                room.send('```' + reply.intent.text + '```');
+                room.send('```' + reply.text + '```');
             }
         }
     });

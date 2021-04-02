@@ -1,11 +1,25 @@
-import { command } from './command.js';
-import { Reply, ReplyMessage } from './types.js';
+import mainCommand from './mainCommand.js';
+import { Reply, ReplyError, ReplyMessage } from './types.js';
 
 
 function assertEqual(actual: any, expected: any) {
     if (actual === expected) return;
     console.error('Expected:\n' + expected);
     console.error('Actual:\n' + actual);
+    process.exit(1);
+}
+
+function assertMessage(reply: Reply): asserts reply is ReplyMessage {
+    if (reply.type === 'MESSAGE') return;
+    console.error('Expected: MESSAGE');
+    console.error('Actual: ' + reply.type);
+    process.exit(1);
+}
+
+function assertError(reply: Reply): asserts reply is ReplyError {
+    if (reply.type === 'ERROR') return;
+    console.error('Expected: ERROR');
+    console.error('Actual: ' + reply.type);
     process.exit(1);
 }
 
@@ -16,9 +30,9 @@ class TestBot {
         this.state = {};
     }
     send(room, user, text) {
-        const reply = command({ room, user, text, state: this.state });
+        const reply = mainCommand({ room, user, text, state: this.state });
         this.state = reply.state || this.state,
-        this.reply = reply,
+        this.reply = reply;
     }
 }
 
@@ -26,10 +40,9 @@ function test_ping() {
     console.log('test_ping()');
     const bot = new TestBot();
     bot.send('test_channel', 'test_user', 'ping');
-    assertEqual(bot.reply.type, 'MESSAGE');
-    const message = (bot.reply as ReplyMessage);
-    assertEqual(message.room, 'test_channel');
-    assertEqual(message.text, 'pong!');
+    assertMessage(bot.reply);
+    assertEqual(bot.reply.room, 'test_channel');
+    assertEqual(bot.reply.text, 'pong!');
 }
 
 function test_tictactoe_blankBoard() {
@@ -39,10 +52,9 @@ function test_tictactoe_blankBoard() {
     bot.send('test_channel', 'alice', 'join x');
     bot.send('test_channel', 'bob', 'join o');
     bot.send('test_channel', 'alice', 'start');
-    assertEqual(bot.reply.type, 'MESSAGE');
-    const message = (bot.reply as ReplyMessage);
-    assertEqual(message.room, 'test_channel');
-    assertEqual(message.text, ''
+    assertMessage(bot.reply);
+    assertEqual(bot.reply.room, 'test_channel');
+    assertEqual(bot.reply.text, ''
         + '   |   |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
@@ -59,10 +71,9 @@ function test_tictactoe_moveOnce() {
     bot.send('test_room', 'alice', 'join o');
     bot.send('test_room', 'alice', 'start');
     bot.send('test_room', 'alice', 'move 2');
-    assertEqual(bot.reply.type, 'MESSAGE');
-    const intent = (bot.reply as ReplyMessage);
-    assertEqual(intent.room, 'test_room');
-    assertEqual(intent.text, ''
+    assertMessage(bot.reply);
+    assertEqual(bot.reply.room, 'test_room');
+    assertEqual(bot.reply.text, ''
         + '   | X |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
@@ -80,10 +91,9 @@ function test_tictactoe_moveTwice() {
     bot.send('test_room', 'bob', 'start');
     bot.send('test_room', 'bob', 'move 5');
     bot.send('test_room', 'alice', 'move 1');
-    assertEqual(bot.reply.type, 'MESSAGE');
-    const intent = (bot.reply as ReplyMessage);
-    assertEqual(intent.room, 'test_room');
-    assertEqual(intent.text, ''
+    assertMessage(bot.reply);
+    assertEqual(bot.reply.room, 'test_room');
+    assertEqual(bot.reply.text, ''
         + ' O |   |   \n'
         + '---+---+---\n'
         + '   | X |   \n'
@@ -100,10 +110,9 @@ function test_tictactoe_wrongPlayer() {
     bot.send('test_room', 'bob', 'join o');
     bot.send('test_room', 'bob', 'start');
     bot.send('test_room', 'bob', 'move 5');
-    assertEqual(bot.reply.type, 'MESSAGE');
-    const intent = (bot.reply as ReplyMessage);
-    assertEqual(intent.room, 'test_room');
-    assertEqual(intent.text, 'It is not your turn!');
+    assertError(bot.reply);
+    assertEqual(bot.reply.room, 'test_room');
+    assertEqual(bot.reply.text, 'It is not your turn!');
 }
 
 function runTests() {

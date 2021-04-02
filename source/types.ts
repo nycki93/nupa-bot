@@ -3,33 +3,27 @@ export type Query = {
     room: string,
     text: string,
     state: any,
-}
-
-export enum REPLY_TYPE {
-    NONE,
-    MESSAGE,
-    ERROR,
-}
-
-export type ReplyNone = {
-    type: REPLY_TYPE.NONE,
-}
-
-export type ReplyMessage = { 
-    type: REPLY_TYPE.MESSAGE,
-    room: string, 
-    text: string,
-    state: any,
 };
 
-export type ReplyError = {
-    type: REPLY_TYPE.ERROR,
-    room: string,
-    text: string,
+export interface ReplyNone {
+    type: 'NONE',
+    state?: any,
 }
 
-export type Reply = {
-    type: REPLY_TYPE,
+export interface ReplyMessage {
+    type: 'MESSAGE'
+    room: string,
+    text: string,
+    state: any,
 }
+
+export interface ReplyError {
+    type: 'ERROR',
+    room: string,
+    text: string,
+    state: any,
+}
+
+export type Reply = ReplyNone | ReplyMessage | ReplyError;
 
 export type Command = ((query: Query) => Reply);
