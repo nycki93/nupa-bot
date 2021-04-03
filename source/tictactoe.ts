@@ -1,4 +1,4 @@
-import { Message } from "./types";
+import { Command } from "./types";
 
 enum Piece {
     NONE = ' ',
@@ -23,8 +23,9 @@ function display(state: TictactoeState) {
     );
 }
 
-export function join(message: Message, state: TictactoeState) {
-    const args = message.text.split(/\s+/);
+export const join: Command = function(query) {
+    const state = query.state as TictactoeState;
+    const args = query.text.split(/\s+/);
     const choice = (args[1] || '').toUpperCase();
     const piece = (
         choice === 'X' ? Piece.X
@@ -32,59 +33,53 @@ export function join(message: Message, state: TictactoeState) {
         : Piece.NONE
     );
     return {
-        intent: { type: 'NONE' },
+        type: 'NONE',
         state: {
             ...state,
             players: {
                 ...state.players,
-                [piece]: message.user,
+                [piece]: query.user,
             }
         }
     }
 }
 
-export function start(message: Message, state: TictactoeState) {
+export const start: Command = function(query) {
+    const state = query.state as TictactoeState;
     const newState = { 
         ...state,
         board: Array(9).fill(Piece.NONE),
         turn: Piece.X,
     };
     return {
-        intent: {
-            type: 'MESSAGE' as const,
-            room: message.room,
-            text: display(newState),
-        },
+        type: 'MESSAGE',
+        room: query.room,
+        text: display(newState),
         state: newState,
     }
 }
 
-export function move(message: Message, state: TictactoeState) {
-    const args = message.text.split(/\s+/);
+export const move: Command = function(query) {
+    const state = query.state as TictactoeState;
+    const args = query.text.split(/\s+/);
     const position = args.length === 2 && parseInt(args[1]);
-    if (state.players[state.turn] !== message.user) return {
-        intent: {
-            type: 'MESSAGE' as const,
-            room: message.room,
-            text: 'It is not your turn!',
-        },
+    if (state.players[state.turn] !== query.user) return {
+        type: 'ERROR',
+        room: query.room,
+        text: 'It is not your turn!',
         state,
     }
     if (!(position >= 1 && position <= 9)) return {
-        intent: {
-            type: 'MESSAGE' as const,
-            room: message.room,
-            text: 'Usage: ' + args[0] + ' <position>\n'
-                + 'positions are from 1 (top left) to 9 (bottom right).',
-        },
+        type: 'ERROR',
+        room: query.room,
+        text: 'Usage: ' + args[0] + ' <position>\n'
+            + 'positions are from 1 (top left) to 9 (bottom right).',
         state,
     } 
     if (state.board[position-1] !== ' ') return {
-        intent: {
-            type: 'MESSAGE' as const,
-            room: message.room,
-            text: 'That position is already occupied!',
-        },
+        type: 'ERROR',
+        room: query.room,
+        text: 'That position is already occupied!',
         state,
     }
     const newBoard = [...state.board];
@@ -96,11 +91,9 @@ export function move(message: Message, state: TictactoeState) {
         turn: newTurn,
     }
     return {
-        intent: {
-            type: 'MESSAGE' as const,
-            room: message.room,
-            text: display(newState),
-        },
+        type: 'MESSAGE',
+        room: query.room,
+        text: display(newState),
         state: newState,
     }
 }
