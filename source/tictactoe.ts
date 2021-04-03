@@ -32,6 +32,18 @@ export const join: Command = function(query) {
         : choice === 'O' ? Piece.O
         : Piece.NONE
     );
+    if (args.length !== 2 || piece === Piece.NONE) return {
+        type: 'ERROR',
+        room: query.room,
+        text: 'Options: X, O.',
+        state,
+    }
+    if (state.players && state.players[piece]) return {
+        type: 'ERROR',
+        room: query.room,
+        text: 'That character is already claimed!',
+        state,
+    }
     return {
         type: 'NONE',
         state: {

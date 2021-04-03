@@ -115,12 +115,33 @@ function test_tictactoe_wrongPlayer() {
     assertEqual(bot.reply.text, 'It is not your turn!');
 }
 
+function test_tictactoe_errorWhenJoiningOccupiedSeat() {
+    console.log('test_tictactoe_errorWhenJoiningOccupiedSeat()');
+    const bot = new TestBot();
+    bot.send('test_room', 'alice', 'play tictactoe');
+    bot.send('test_room', 'alice', 'join x');
+    bot.send('test_room', 'bob', 'join x');
+    assertError(bot.reply);
+    assertEqual(bot.reply.text, 'That character is already claimed!');
+}
+
+function test_tictactoe_errorWhenCharacterDoesNotExist() {
+    console.log('test_tictactoe_errorWhenCharacterDoesNotExist()');
+    const bot = new TestBot();
+    bot.send('test_room', 'alice', 'play tictactoe');
+    bot.send('test_room', 'bob', 'join q');
+    assertError(bot.reply);
+    assertEqual(bot.reply.text, 'Options: X, O.');
+}
+
 function runTests() {
     test_ping();
     test_tictactoe_blankBoard();
     test_tictactoe_moveOnce();
     test_tictactoe_moveTwice();
     test_tictactoe_wrongPlayer();
+    test_tictactoe_errorWhenJoiningOccupiedSeat();
+    test_tictactoe_errorWhenCharacterDoesNotExist();
     console.log("All tests OK.");
     process.exit(0);
 }
