@@ -134,6 +134,14 @@ function test_tictactoe_errorWhenCharacterDoesNotExist() {
     assertEqual(bot.reply.text, 'Options: X, O.');
 }
 
+function test_unloaded_command() {
+    console.log('test_unloaded_command()');
+    const bot = new TestBot();
+    bot.send('test_room', 'alice', 'join x');
+    assertError(bot.reply);
+    assertEqual(bot.reply.text, 'Invalid command. Is a game in progress?');
+}
+
 function runTests() {
     test_ping();
     test_tictactoe_blankBoard();
@@ -142,6 +150,7 @@ function runTests() {
     test_tictactoe_wrongPlayer();
     test_tictactoe_errorWhenJoiningOccupiedSeat();
     test_tictactoe_errorWhenCharacterDoesNotExist();
+    // test_unloaded_command();
     console.log("All tests OK.");
     process.exit(0);
 }
