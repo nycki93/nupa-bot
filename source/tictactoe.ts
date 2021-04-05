@@ -1,5 +1,9 @@
 import { Command } from "./types";
 
+const Text = {
+    JOIN_USAGE: "Options: X, O.",
+};
+
 enum Piece {
     NONE = ' ',
     X = 'X',
@@ -23,7 +27,7 @@ function display(state: TictactoeState) {
     );
 }
 
-export const join: Command = function(query) {
+const join: Command = function(query) {
     const state = query.state as TictactoeState;
     const args = query.text.split(/\s+/);
     const choice = (args[1] || '').toUpperCase();
@@ -35,8 +39,7 @@ export const join: Command = function(query) {
     if (args.length !== 2 || piece === Piece.NONE) return {
         type: 'ERROR',
         room: query.room,
-        text: 'Options: X, O.',
-        state,
+        text: Text.JOIN_USAGE,
     }
     if (state.players && state.players[piece]) return {
         type: 'ERROR',
@@ -56,7 +59,7 @@ export const join: Command = function(query) {
     }
 }
 
-export const start: Command = function(query) {
+const start: Command = function(query) {
     const state = query.state as TictactoeState;
     const newState = { 
         ...state,
@@ -71,7 +74,7 @@ export const start: Command = function(query) {
     }
 }
 
-export const move: Command = function(query) {
+const move: Command = function(query) {
     const state = query.state as TictactoeState;
     const args = query.text.split(/\s+/);
     const position = args.length === 2 && parseInt(args[1]);
@@ -109,3 +112,5 @@ export const move: Command = function(query) {
         state: newState,
     }
 }
+
+export default { join, start, move };

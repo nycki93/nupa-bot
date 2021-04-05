@@ -14,14 +14,14 @@ export interface ReplyMessage {
     type: 'MESSAGE'
     room: string,
     text: string,
-    state: any,
+    state?: any,
 }
 
 export interface ReplyError {
     type: 'ERROR',
     room: string,
     text: string,
-    state: any,
+    state?: any,
 }
 
 export type Reply = ReplyNone | ReplyMessage | ReplyError;
