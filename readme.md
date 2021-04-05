@@ -1,13 +1,17 @@
-To install:
+## Set-up
 
-Create a file at the top of the project called `.env`. Fill in this line:
+- Install NodeJS v14+ on the host machine.
+- Run:
+```
+npm install
+npm build
+npm start
+```
+- A file called "config.json" should be generated. Do not commit this file!
+- Go to discord.com/developers and locate your bot token. Copy it to config.json where indicated.
+
+## Run
 
 ```
-TOKEN=<your bot token>
+npm start
 ```
-
-Do `npm install` once, to download the required libraries.
-
-Do `npm run build` each time you change the code.
-
-Do `npm run start` to start the bot.
