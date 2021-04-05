@@ -150,7 +150,7 @@ function runTests() {
     test_tictactoe_wrongPlayer();
     test_tictactoe_errorWhenJoiningOccupiedSeat();
     test_tictactoe_errorWhenCharacterDoesNotExist();
-    // test_unloaded_command();
+    test_unloaded_command();
     console.log("All tests OK.");
     process.exit(0);
 }

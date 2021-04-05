@@ -41,6 +41,10 @@ const main: Command = (query) => {
     if (state.app === 'tictactoe' && keyword in tictactoe) {
         return tictactoe[keyword](query);
     }
-    return { type: 'NONE' };
+    return {
+        type: 'ERROR',
+        room: query.room,
+        text: Text.BAD_COMMAND,
+    }
 };
 export default main;
