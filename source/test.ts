@@ -1,3 +1,4 @@
+import { assert } from 'node:console';
 import mainCommand from './mainCommand.js';
 import { Reply, ReplyError, ReplyMessage } from './types.js';
 
@@ -102,6 +103,30 @@ function test_tictactoe_moveTwice() {
     );
 }
 
+function test_tictactoe_winX() {
+    console.log('test_tictactoe_winX()');
+    const bot = new TestBot();
+    bot.send('test_room', 'alice', 'play tictactoe');
+    bot.send('test_room', 'alice', 'join x');
+    bot.send('test_room', 'bob', 'join o');
+    bot.send('test_room', 'alice', 'start');
+    bot.send('test_room', 'alice', 'move 3');
+    bot.send('test_room', 'bob', 'move 5');
+    bot.send('test_room', 'alice', 'move 2');
+    bot.send('test_room', 'bob', 'move 9');
+    bot.send('test_room', 'alice', 'move 1');
+    assertMessage(bot.reply);
+    assertEqual(bot.reply.text, ''
+        + ' X | X | X \n'
+        + '---+---+---\n'
+        + '   | O |   \n'
+        + '---+---+---\n'
+        + '   |   | O \n'
+        + '===========\n'
+        + '  X Wins!  \n'
+    );
+}
+
 function test_tictactoe_wrongPlayer() {
     console.log('test_tictactoe_wrongPlayer()');
     const bot = new TestBot();
@@ -143,14 +168,19 @@ function test_unloaded_command() {
 }
 
 function runTests() {
+    /* Happy paths */
     test_ping();
     test_tictactoe_blankBoard();
     test_tictactoe_moveOnce();
     test_tictactoe_moveTwice();
+    // test_tictactoe_winX();
+
+    /* Error paths */
     test_tictactoe_wrongPlayer();
     test_tictactoe_errorWhenJoiningOccupiedSeat();
     test_tictactoe_errorWhenCharacterDoesNotExist();
     test_unloaded_command();
+
     console.log("All tests OK.");
     process.exit(0);
 }
