@@ -1,20 +1,18 @@
-import { Command } from "./types";
+import { Query, Reply } from './types';
+
+export type TictactoeState = {
+    context: 'INITIAL'|'PLAYING'
+    board?: Array<' '|'X'|'O'>,
+    turn?: 'X'|'O',
+    players?: {
+        'X': string,
+        'O': string,
+    },
+}
 
 const Text = {
     JOIN_USAGE: "Options: X, O.",
 };
-
-enum Piece {
-    NONE = ' ',
-    X = 'X',
-    O = 'O',
-};
-
-type TictactoeState = {
-    board: Array<Piece>,
-    turn: Piece,
-    players: { [key in Piece]: string },
-}
 
 function display(state: TictactoeState) {
     const { board } = state;
@@ -27,90 +25,107 @@ function display(state: TictactoeState) {
     );
 }
 
-const join: Command = function(query) {
-    const state = query.state as TictactoeState;
-    const args = query.text.split(/\s+/);
-    const choice = (args[1] || '').toUpperCase();
+function join(params: {
+    state: TictactoeState, query: Query,
+}) : {
+    state: TictactoeState, reply: Reply,
+} {
+    const { state, query } = params;
+    const choice = (query.args[1] || '').toUpperCase();
     const piece = (
-        choice === 'X' ? Piece.X
-        : choice === 'O' ? Piece.O
-        : Piece.NONE
+        choice === 'X' ? 'X' :
+        choice === 'O' ? 'O' :
+        ''
     );
-    if (args.length !== 2 || piece === Piece.NONE) return {
-        type: 'ERROR',
-        room: query.room,
-        text: Text.JOIN_USAGE,
+    if (query.args.length !== 2 || !piece) return {
+        state,
+        reply: { error: Text.JOIN_USAGE }
     }
     if (state.players && state.players[piece]) return {
-        type: 'ERROR',
-        room: query.room,
-        text: 'That character is already claimed!',
         state,
+        reply: { error: 'That character is already claimed!' },
     }
     return {
-        type: 'NONE',
-        state: {
-            ...state,
-            players: {
-                ...state.players,
+        state: {...state,
+            players: {...state.players,
                 [piece]: query.user,
-            }
-        }
+            },
+        },
+        reply: { message: query.user + ' claimed character ' + piece + '.' },
     }
 }
 
-const start: Command = function(query) {
-    const state = query.state as TictactoeState;
-    const newState = { 
-        ...state,
-        board: Array(9).fill(Piece.NONE),
-        turn: Piece.X,
+function start(params: {
+    state: TictactoeState, query: Query,
+}): {
+    state: TictactoeState, reply: Reply,
+} {
+    const { state, query } = params;
+    const newState = {...state,
+        context: 'PLAYING' as const,
+        board: Array(9).fill(' '),
+        turn: 'X' as const,
     };
     return {
-        type: 'MESSAGE',
-        room: query.room,
-        text: display(newState),
         state: newState,
+        reply: { message: display(newState) },
     }
 }
 
-const move: Command = function(query) {
-    const state = query.state as TictactoeState;
-    const args = query.text.split(/\s+/);
-    const position = args.length === 2 && parseInt(args[1]);
+function move(params: {
+    state: TictactoeState,
+    query: Query,
+}) {
+    const { state, query } = params;
+    const position = query.args.length === 2 && parseInt(query.args[1]);
     if (state.players[state.turn] !== query.user) return {
-        type: 'ERROR',
-        room: query.room,
-        text: 'It is not your turn!',
         state,
-    }
+        reply: { error: 'It is not your turn!' },
+    };
     if (!(position >= 1 && position <= 9)) return {
-        type: 'ERROR',
-        room: query.room,
-        text: 'Usage: ' + args[0] + ' <position>\n'
-            + 'positions are from 1 (top left) to 9 (bottom right).',
         state,
-    } 
+        reply: { 
+            error: (''
+                + 'Usage: ' + query.args[0] + ' <position>\n'
+                + 'positions are from 1 (top left) to 9 (bottom right).'
+            ),
+        },
+    };
     if (state.board[position-1] !== ' ') return {
-        type: 'ERROR',
-        room: query.room,
-        text: 'That position is already occupied!',
         state,
-    }
+        reply: { error: 'That position is already occupied!' },
+    };
     const newBoard = [...state.board];
     newBoard[position-1] = state.turn;
-    const newTurn = (state.turn === Piece.X ? Piece.O : Piece.X);
+    const newTurn = (state.turn === 'X' ? 'O' as const : 'X' as const);
     const newState = { 
         ...state, 
         board: newBoard,
         turn: newTurn,
     }
     return {
-        type: 'MESSAGE',
-        room: query.room,
-        text: display(newState),
         state: newState,
+        reply: { message: display(newState) },
     }
 }
 
-export default { join, start, move };
+export const tictactoeCommand = function(params: {
+    state: TictactoeState,
+    query: Query,
+}): {
+    state: TictactoeState,
+    reply: Reply,
+} {
+    const { state, query } = params;
+    const keyword = query.args[0];
+    if (keyword === 'join' && state.context === 'INITIAL') {
+        return join({ state, query });
+    }
+    if (keyword === 'start' && state.context === 'INITIAL') {
+        return start({ state, query });
+    }
+    if (keyword === 'move' && state.context === 'PLAYING') {
+        return move({ state, query });
+    }
+    return { state, reply: { } }
+}

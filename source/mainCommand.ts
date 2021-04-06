@@ -1,50 +1,80 @@
-import { Command } from './types';
-import tictactoe from './tictactoe';
+import { Query, Reply } from './types';
+import { tictactoeCommand, TictactoeState } from './tictactoe';
+
+export interface MainState {
+    app?: 'tictactoe',
+    tictactoe?: TictactoeState,
+}
 
 export const Text = {
-    BAD_COMMAND: 'Invalid command. Is a game in progress?',
+    BAD_COMMAND: (cmd: string) => 'Unrecognized command "' + cmd + '".',
     PONG: 'pong!',
+    APP_STARTED: (app: string) => app + ' started.',
 }
 
-const ping: Command = function(query) {
+function ping(params: {
+    state: MainState, query: Query,
+}): { 
+    state: MainState, reply: Reply 
+} {
     return {
-        type: 'MESSAGE',
-        room: query.room,
-        text: Text.PONG,
-        state: query.state,
-    };
+        state: params.state,
+        reply: { message: Text.PONG }
+    }
 };
 
-const play: Command = function(query) {
-    if (query.text === 'play tictactoe') return {
-        type: 'NONE',
-        state: {
-            ...query.state,
+function play(params: {
+    state: MainState, query: Query,
+}): {
+    state: MainState, reply: Reply,
+} {
+    const { state, query } = params;
+    if (query.args[1] === 'tictactoe' && !state.app) return {
+        state: { ...state, 
             app: 'tictactoe',
+            tictactoe: { context: 'INITIAL' }, 
+        },
+        reply: { message: Text.APP_STARTED('tictactoe')},
+    };
+    return {
+        state,
+        reply: { error: Text.BAD_COMMAND(query.args[1]) },
+    }
+}
+
+const commands = { ping, play };
+
+export const mainCommand = function(params:{ 
+    state: MainState, query: Query,
+}): {
+    state: MainState, reply: Reply,
+} {
+    const { state, query } = params;
+    query.args = query.args || query.text.split(/\s+/);
+    const keyword = query.args[0];
+    let result: { state: MainState, reply: Reply };
+    if (keyword in commands) {
+        const { state: newState, reply } = commands[keyword]({ 
+            state, 
+            query,
+        });
+        result = {
+            state: newState, 
+            reply,
+        };
+    } else if (state.app === 'tictactoe') {
+        const { state: newState, reply } = tictactoeCommand({ 
+            state: state.tictactoe, 
+            query,
+        });
+        result = {
+            state: { ...state, tictactoe: newState }, 
+            reply,
         }
     }
-    return { type: 'NONE' };
-}
-
-const commands: { [key: string]: Command} = { 
-    ping, 
-    play,
-};
-
-const main: Command = (query) => {
-    const { state, text } = query;
-    const m = text.match(/^\w+/);
-    const keyword = m && m[0] && m[0].toLowerCase();
-    if (keyword in commands) {
-        return commands[keyword](query);
-    }
-    if (state.app === 'tictactoe' && keyword in tictactoe) {
-        return tictactoe[keyword](query);
-    }
+    if (result?.reply?.message || result?.reply?.error) return result;
     return {
-        type: 'ERROR',
-        room: query.room,
-        text: Text.BAD_COMMAND,
-    }
+        state, 
+        reply: { error: Text.BAD_COMMAND(query.args[0]) },
+    };
 };
-export default main;
