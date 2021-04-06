@@ -7,7 +7,8 @@
     "start": "node ./build/main.js discord",
     "console": "tsc && node ./build/main.js console",
     "test": "tsc && node ./build/test.js",
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "build": "tsc"
   },
   "author": "",
   "license": "ISC",

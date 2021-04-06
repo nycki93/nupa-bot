@@ -4,7 +4,7 @@
 - Run:
 ```
 npm install
-npm build
+npm run build
 npm start
 ```
 - A file called "config.json" should be generated. Do not commit this file!

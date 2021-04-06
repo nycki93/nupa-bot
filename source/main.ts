@@ -4,17 +4,16 @@ import * as readline from 'readline';
 import { mainCommand } from './mainCommand';
 
 function readWriteConfig(path = 'config.json') {
-    const fp = fs.openSync('config.json', 'w+');
-    const config = {
+    const configJson = fs.readFileSync(path).toString();
+    const defaults = {
         discord: { 
             prefix: '!',
             token: '',
             channel: '',
         },
-        ...JSON.parse(fs.readFileSync(fp).toString() || '{}'),
     };
-    fs.writeFileSync(fp, JSON.stringify(config, null, 2));
-    fs.closeSync(fp);
+    const config = { ...defaults, ...JSON.parse(configJson) };
+    fs.writeFileSync(path, JSON.stringify(config, null, 2));
     return config;
 }
 
@@ -37,11 +36,11 @@ function consoleMain()
 }
 
 function discordMain(config: { 
-    prefix: string, 
-    token: string,
-    channel: string,
+    discord: { 
+        prefix: string; token: string; channel: string; 
+    }; 
 }) {
-    const { prefix, token, channel } = config;    
+    const { prefix, token, channel } = config.discord;   
     if (!token) {
         console.log('Please add a discord token to the config file.');
         process.exit(0);
@@ -76,7 +75,6 @@ function discordMain(config: {
 
 function main()
 { 
-    console.log(JSON.stringify(process.argv, null, 2));
     if (process.argv[2] == 'console') {
         consoleMain();
     } else if (process.argv[2] == 'discord') {
