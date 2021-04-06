@@ -1,7 +1,7 @@
 import { Query, Reply } from './types';
 
 export type TictactoeState = {
-    context: 'INITIAL'|'PLAYING'
+    context: 'INIT'|'PLAYING'|'EXIT'
     board?: Array<' '|'X'|'O'>,
     turn?: 'X'|'O',
     players?: {
@@ -14,15 +14,44 @@ const Text = {
     JOIN_USAGE: "Options: X, O.",
 };
 
-function display(state: TictactoeState) {
+const LINES = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+];
+
+function display(state: TictactoeState, banner='') {
     const { board } = state;
-    return (''
+    let result = (''
         + ' ' + board[0] + ' | ' + board[1] + ' | ' + board[2] + ' \n'
         + '---+---+---\n'
         + ' ' + board[3] + ' | ' + board[4] + ' | ' + board[5] + ' \n'
         + '---+---+---\n'
         + ' ' + board[6] + ' | ' + board[7] + ' | ' + board[8] + ' \n'
     );
+    if (banner) {
+        result += '===========\n' + banner + '\n';
+    }
+    return result;
+}
+
+function checkWinner(state: TictactoeState) {
+    const { board } = state;
+    for (const [i, j, k] of LINES) {
+        if (board[i] !== board[j]) continue;
+        if (board[i] !== board[k]) continue;
+        if (board[i] === 'X') return 'X';
+        if (board[i] === 'O') return 'O';
+    }
+    for (const c of board) {
+        if (c === ' ') return '';
+    }
+    return 'DRAW';
 }
 
 function join(params: {
@@ -100,11 +129,20 @@ function move(params: {
     const newState = { ...state, 
         board: newBoard,
         turn: newTurn,
-    }
-    return {
+    };
+    const winner = checkWinner(newState);
+    if (!winner) return {
         state: newState,
         reply: { message: display(newState) },
-    }
+    };
+    if (winner === 'DRAW') return {
+        state: newState,
+        reply: { message: display(newState, 'The game is a draw.') },
+    };
+    return {
+        state: newState,
+        reply: { message: display(newState, winner + ' is the winner!') },
+    };
 }
 
 export const tictactoeCommand = function(params: {
@@ -114,7 +152,7 @@ export const tictactoeCommand = function(params: {
 } {
     const { state, query } = params;
     const keyword = query.args[0];
-    if (state.context === 'INITIAL') {
+    if (state.context === 'INIT') {
         if (keyword === 'join') return join({ state, query });
         if (keyword === 'start') return start({ state, query });
     }

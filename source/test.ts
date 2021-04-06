@@ -105,7 +105,7 @@ function test_tictactoe_winX() {
         + '---+---+---\n'
         + '   |   | O \n'
         + '===========\n'
-        + '  X Wins!  \n'
+        + 'X is the winner!\n'
     );
 }
 
@@ -154,7 +154,7 @@ function runTests() {
     test_tictactoe_blankBoard();
     test_tictactoe_moveOnce();
     test_tictactoe_moveTwice();
-    // test_tictactoe_winX();
+    test_tictactoe_winX();
 
     /* Error paths */
     test_tictactoe_wrongPlayer();

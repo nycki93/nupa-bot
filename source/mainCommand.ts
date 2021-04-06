@@ -32,7 +32,7 @@ function play(params: {
     if (query.args[1] === 'tictactoe' && !state.app) return {
         state: { ...state, 
             app: 'tictactoe',
-            tictactoe: { context: 'INITIAL' }, 
+            tictactoe: { context: 'INIT' }, 
         },
         reply: { message: Text.APP_STARTED('tictactoe')},
     };
@@ -70,6 +70,9 @@ export const mainCommand = function(params:{
         result = {
             state: { ...state, tictactoe: newState }, 
             reply,
+        }
+        if (newState.context === 'EXIT') {
+            state.app = undefined;
         }
     }
     if (result?.reply?.message || result?.reply?.error) return result;
