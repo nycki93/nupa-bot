@@ -9,6 +9,7 @@ function readWriteConfig(path = 'config.json') {
         discord: { 
             prefix: '!',
             token: '',
+            channel: '',
         },
         ...JSON.parse(fs.readFileSync(fp).toString() || '{}'),
     };
@@ -38,16 +39,22 @@ function consoleMain()
 function discordMain(config: { 
     prefix: string, 
     token: string,
+    channel: string,
 }) {
-    const { prefix, token } = config;    
+    const { prefix, token, channel } = config;    
     if (!token) {
         console.log('Please add a discord token to the config file.');
+        process.exit(0);
+    }
+    if (!channel) {
+        console.log('Please add a channel ID to the config file.');
         process.exit(0);
     }
     const dc = new discord.Client;
     let state = {};
     dc.on('message', async message => {
         if (!message.content.startsWith(prefix)) return;
+        if (message.channel.id !== channel) return;
         const args = message.content.slice(prefix.length).split(/\s+/);
         const { state: newState, reply } = mainCommand({
             state,

@@ -46,8 +46,8 @@ function join(params: {
         reply: { error: 'That character is already claimed!' },
     }
     return {
-        state: {...state,
-            players: {...state.players,
+        state: { ...state,
+            players: { ...state.players,
                 [piece]: query.user,
             },
         },
@@ -61,7 +61,7 @@ function start(params: {
     state: TictactoeState, reply: Reply,
 } {
     const { state, query } = params;
-    const newState = {...state,
+    const newState = { ...state,
         context: 'PLAYING' as const,
         board: Array(9).fill(' '),
         turn: 'X' as const,
@@ -73,8 +73,7 @@ function start(params: {
 }
 
 function move(params: {
-    state: TictactoeState,
-    query: Query,
+    state: TictactoeState, query: Query,
 }) {
     const { state, query } = params;
     const position = query.args.length === 2 && parseInt(query.args[1]);
@@ -98,8 +97,7 @@ function move(params: {
     const newBoard = [...state.board];
     newBoard[position-1] = state.turn;
     const newTurn = (state.turn === 'X' ? 'O' as const : 'X' as const);
-    const newState = { 
-        ...state, 
+    const newState = { ...state, 
         board: newBoard,
         turn: newTurn,
     }
@@ -110,22 +108,18 @@ function move(params: {
 }
 
 export const tictactoeCommand = function(params: {
-    state: TictactoeState,
-    query: Query,
+    state: TictactoeState, query: Query,
 }): {
-    state: TictactoeState,
-    reply: Reply,
+    state: TictactoeState, reply: Reply,
 } {
     const { state, query } = params;
     const keyword = query.args[0];
-    if (keyword === 'join' && state.context === 'INITIAL') {
-        return join({ state, query });
+    if (state.context === 'INITIAL') {
+        if (keyword === 'join') return join({ state, query });
+        if (keyword === 'start') return start({ state, query });
     }
-    if (keyword === 'start' && state.context === 'INITIAL') {
-        return start({ state, query });
-    }
-    if (keyword === 'move' && state.context === 'PLAYING') {
-        return move({ state, query });
+    if (state.context === 'PLAYING') {
+        if (keyword === 'move') return move({ state, query });
     }
     return { state, reply: { } }
 }
