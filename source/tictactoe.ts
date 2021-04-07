@@ -5,8 +5,8 @@ export type TictactoeState = {
     board?: Array<' '|'X'|'O'>,
     turn?: 'X'|'O',
     players?: {
-        'X': string,
-        'O': string,
+        'X': { id: string, name: string },
+        'O': { id: string, name: string },
     },
 }
 
@@ -75,10 +75,10 @@ function join(params: {
     return {
         state: { ...state,
             players: { ...state.players,
-                [piece]: query.user,
+                [piece]: { id: query.userId, name: query.userName }
             },
         },
-        reply: { message: query.user + ' claimed character ' + piece + '.' },
+        reply: { message: query.userName + ' claimed character ' + piece + '.' },
     }
 }
 
@@ -104,7 +104,7 @@ function move(params: {
 }) {
     const { state, query } = params;
     const position = query.args.length === 2 && parseInt(query.args[1]);
-    if (state.players[state.turn] !== query.user) return {
+    if (state.players[state.turn].id !== query.userId) return {
         state,
         reply: { error: 'It is not your turn!' },
     };

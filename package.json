@@ -4,7 +4,7 @@
   "description": "",
   "main": "build/main.js",
   "scripts": {
-    "start": "node ./build/main.js discord",
+    "start": "tsc && node ./build/main.js discord",
     "console": "tsc && node ./build/main.js console",
     "test": "tsc && node ./build/test.js",
     "tsc": "tsc",

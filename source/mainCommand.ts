@@ -67,12 +67,16 @@ export const mainCommand = function(params:{
             state: state.tictactoe, 
             query,
         });
-        result = {
-            state: { ...state, tictactoe: newState }, 
-            reply,
-        }
         if (newState.context === 'EXIT') {
-            state.app = undefined;
+            result = {
+                state: { ...state, app: undefined, tictactoe: undefined },
+                reply,
+            }
+        } else {
+            result = {
+                state: { ...state, tictactoe: newState }, 
+                reply,
+            }
         }
     }
     if (result?.reply?.message || result?.reply?.error) return result;

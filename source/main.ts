@@ -24,7 +24,7 @@ function consoleMain()
     rl.on('line', line => {
         const { state: newState, reply } = mainCommand({
             state,
-            query: { user: 'console', text: line },
+            query: { userId: 'console', userName: 'console', text: line },
         });
         state = newState;
         if (reply.message) {
@@ -58,7 +58,8 @@ function discordMain(config: {
         const { state: newState, reply } = mainCommand({
             state,
             query: {
-                user: message.member.id,
+                userId: message.member.id,
+                userName: message.member.displayName,
                 text: message.content,
                 args,
             }
