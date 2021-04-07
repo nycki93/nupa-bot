@@ -2,7 +2,7 @@ import { Query, Reply } from './types';
 import { tictactoeCommand, TictactoeState } from './tictactoe';
 
 export interface MainState {
-    context?: 'INIT'|'PLAYING',
+    context?: 'INIT'|'PLAYING'|'QUIT_CONFIRM',
     app?: 'tictactoe',
     appState?: TictactoeState,
 }
@@ -52,6 +52,14 @@ function quit(params: {
     return { state: params.state, reply: {} };
 }
 
+function quitConfirm(params: { 
+    state: MainState, query: Query, 
+}): { 
+    state: MainState, reply: Reply,
+} {
+    return;
+}
+
 function appCommand(params: {
     state: MainState, query: Query
 }): {
@@ -97,6 +105,7 @@ export const mainCommand = function(params:{
             if ( result.reply.error || result.reply.message ) return result;
         } 
     }
+    if (state.context === 'QUIT_CONFIRM') return quitConfirm({ state, query });
     return {
         state, 
         reply: { error: Text.BAD_COMMAND(query.args[0]) },

@@ -23,6 +23,8 @@ class TestBot {
     }
 }
 
+/* Happy Paths */
+
 function test_ping() {
     console.log('test_ping()');
     const bot = new TestBot();
@@ -148,6 +150,8 @@ function test_tictactoe_quit() {
     assertEqual(bot.reply.error, undefined);
     assertEqual(bot.reply.message, 'tictactoe started.');
 }
+
+/* Error Paths */
     
 function test_unloaded_command() {
     console.log('test_unloaded_command()');
@@ -189,7 +193,7 @@ function test_tictactoe_errorWhenCharacterDoesNotExist() {
 }
 
 function runTests() {
-    /* Happy paths */
+    /* Happy Paths */
     test_ping();
     test_tictactoe_blankBoard();
     test_tictactoe_moveOnce();
@@ -198,7 +202,7 @@ function runTests() {
     test_tictactoe_newGameAfterDraw();
     //test_tictactoe_quit();
 
-    /* Error paths */
+    /* Error Paths */
     test_unloaded_command();
     test_tictactoe_wrongPlayer();
     test_tictactoe_errorWhenJoiningOccupiedSeat();
