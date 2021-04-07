@@ -13,10 +13,10 @@ class TestBot {
     constructor() {
         this.state = {};
     }
-    send(_room: string, user: string, text: string) {
+    send(text: string, user: string = 'test_user') {
         const { state, reply } = mainCommand({ 
             state: this.state,
-            query: { user, text },
+            query: { text, user },
         });
         this.state = state || this.state,
         this.reply = reply;
@@ -26,7 +26,7 @@ class TestBot {
 function test_ping() {
     console.log('test_ping()');
     const bot = new TestBot();
-    bot.send('test_channel', 'test_user', 'ping');
+    bot.send('ping', 'test_user');
     assertEqual(bot.reply.error, undefined);
     assertEqual(bot.reply.message, 'pong!');
 }
@@ -34,10 +34,10 @@ function test_ping() {
 function test_tictactoe_blankBoard() {
     console.log('test_tictactoe_blankBoard()');
     const bot = new TestBot();
-    bot.send('test_channel', 'alice', 'play tictactoe');
-    bot.send('test_channel', 'alice', 'join x');
-    bot.send('test_channel', 'bob', 'join o');
-    bot.send('test_channel', 'alice', 'start');
+    bot.send('play tictactoe', 'alice');
+    bot.send('join x', 'alice');
+    bot.send('join o', 'bob');
+    bot.send('start', 'alice');
     assertEqual(bot.reply.error, undefined);
     assertEqual(bot.reply.message, ''
         + '   |   |   \n'
@@ -51,11 +51,11 @@ function test_tictactoe_blankBoard() {
 function test_tictactoe_moveOnce() {
     console.log('test_tictactoe_moveOnce()');
     const bot = new TestBot();
-    bot.send('test_room', 'alice', 'play tictactoe');
-    bot.send('test_room', 'alice', 'join x');
-    bot.send('test_room', 'alice', 'join o');
-    bot.send('test_room', 'alice', 'start');
-    bot.send('test_room', 'alice', 'move 2');
+    bot.send('play tictactoe', 'alice');
+    bot.send('join x', 'alice');
+    bot.send('join o', 'alice');
+    bot.send('start', 'alice');
+    bot.send('move 2', 'alice');
     assertEqual(bot.reply.error, undefined);
     assertEqual(bot.reply.message, ''
         + '   | X |   \n'
@@ -69,12 +69,12 @@ function test_tictactoe_moveOnce() {
 function test_tictactoe_moveTwice() {
     console.log('test_tictactoe_moveTwice()');
     const bot = new TestBot();
-    bot.send('test_room', 'alice', 'play tictactoe');
-    bot.send('test_room', 'bob', 'join x');
-    bot.send('test_room', 'alice', 'join o');
-    bot.send('test_room', 'bob', 'start');
-    bot.send('test_room', 'bob', 'move 5');
-    bot.send('test_room', 'alice', 'move 1');
+    bot.send('play tictactoe', 'alice');
+    bot.send('join x', 'bob');
+    bot.send('join o', 'alice');
+    bot.send('start', 'bob');
+    bot.send('move 5', 'bob');
+    bot.send('move 1', 'alice');
     assertEqual(bot.reply.error, undefined);
     assertEqual(bot.reply.message, ''
         + ' O |   |   \n'
@@ -88,15 +88,15 @@ function test_tictactoe_moveTwice() {
 function test_tictactoe_winX() {
     console.log('test_tictactoe_winX()');
     const bot = new TestBot();
-    bot.send('test_room', 'alice', 'play tictactoe');
-    bot.send('test_room', 'alice', 'join x');
-    bot.send('test_room', 'bob', 'join o');
-    bot.send('test_room', 'alice', 'start');
-    bot.send('test_room', 'alice', 'move 3');
-    bot.send('test_room', 'bob', 'move 5');
-    bot.send('test_room', 'alice', 'move 2');
-    bot.send('test_room', 'bob', 'move 9');
-    bot.send('test_room', 'alice', 'move 1');
+    bot.send('play tictactoe', 'alice');
+    bot.send('join x', 'alice');
+    bot.send('join o', 'bob');
+    bot.send('start', 'alice');
+    bot.send('move 3', 'alice');
+    bot.send('move 5', 'bob');
+    bot.send('move 2', 'alice');
+    bot.send('move 9', 'bob');
+    bot.send('move 1', 'alice');
     assertEqual(bot.reply.error, undefined);
     assertEqual(bot.reply.message, ''
         + ' X | X | X \n'
@@ -112,20 +112,20 @@ function test_tictactoe_winX() {
 function test_tictactoe_newGameAfterDraw() {
     console.log('test_tictactoe_newGameAfterDraw()');
     const bot = new TestBot();
-    bot.send('', 'alice', 'play tictactoe');
-    bot.send('', 'alice', 'join x');
-    bot.send('', 'bob', 'join o');
-    bot.send('', 'alice', 'start');
-    bot.send('', 'alice', 'move 1');
-    bot.send('', 'bob', 'move 2');
-    bot.send('', 'alice', 'move 3');
-    bot.send('', 'bob', 'move 4');
-    bot.send('', 'alice', 'move 5');
-    bot.send('', 'bob', 'move 6');
-    bot.send('', 'alice', 'move 7');
-    bot.send('', 'bob', 'move 8');
-    bot.send('', 'alice', 'move 9');
-    bot.send('', 'alice', 'play tictactoe');
+    bot.send('play tictactoe', 'alice');
+    bot.send('join x', 'alice');
+    bot.send('join o', 'bob');
+    bot.send('start', 'alice');
+    bot.send('move 1', 'alice');
+    bot.send('move 2', 'bob');
+    bot.send('move 3', 'alice');
+    bot.send('move 4', 'bob');
+    bot.send('move 5', 'alice');
+    bot.send('move 6', 'bob');
+    bot.send('move 7', 'alice');
+    bot.send('move 8', 'bob');
+    bot.send('move 9', 'alice');
+    bot.send('play tictactoe', 'alice');
     assertEqual(bot.reply.error, undefined);
     assertEqual(bot.reply.message, 'tictactoe started.');
 }
@@ -133,7 +133,7 @@ function test_tictactoe_newGameAfterDraw() {
 function test_unloaded_command() {
     console.log('test_unloaded_command()');
     const bot = new TestBot();
-    bot.send('test_room', 'alice', 'join x');
+    bot.send('join x', 'alice');
     assertEqual(bot.reply.message, undefined);
     assertEqual(bot.reply.error, 'Unrecognized command "join".');
 }
@@ -141,11 +141,11 @@ function test_unloaded_command() {
 function test_tictactoe_wrongPlayer() {
     console.log('test_tictactoe_wrongPlayer()');
     const bot = new TestBot();
-    bot.send('test_room', 'alice', 'play tictactoe');
-    bot.send('test_room', 'alice', 'join x');
-    bot.send('test_room', 'bob', 'join o');
-    bot.send('test_room', 'bob', 'start');
-    bot.send('test_room', 'bob', 'move 5');
+    bot.send('play tictactoe', 'alice');
+    bot.send('join x', 'alice');
+    bot.send('join o', 'bob');
+    bot.send('start', 'bob');
+    bot.send('move 5', 'bob');
     assertEqual(bot.reply.message, undefined);
     assertEqual(bot.reply.error, 'It is not your turn!');
 }
@@ -153,9 +153,9 @@ function test_tictactoe_wrongPlayer() {
 function test_tictactoe_errorWhenJoiningOccupiedSeat() {
     console.log('test_tictactoe_errorWhenJoiningOccupiedSeat()');
     const bot = new TestBot();
-    bot.send('test_room', 'alice', 'play tictactoe');
-    bot.send('test_room', 'alice', 'join x');
-    bot.send('test_room', 'bob', 'join x');
+    bot.send('play tictactoe', 'alice');
+    bot.send('join x', 'alice');
+    bot.send('join x', 'bob');
     assertEqual(bot.reply.message, undefined);
     assertEqual(bot.reply.error, 'That character is already claimed!');
 }
@@ -163,8 +163,8 @@ function test_tictactoe_errorWhenJoiningOccupiedSeat() {
 function test_tictactoe_errorWhenCharacterDoesNotExist() {
     console.log('test_tictactoe_errorWhenCharacterDoesNotExist()');
     const bot = new TestBot();
-    bot.send('test_room', 'alice', 'play tictactoe');
-    bot.send('test_room', 'bob', 'join q');
+    bot.send('play tictactoe', 'alice');
+    bot.send('join q', 'bob');
     assertEqual(bot.reply.message, undefined);
     assertEqual(bot.reply.error, 'Options: X, O.');
 }
