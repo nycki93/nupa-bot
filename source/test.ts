@@ -129,6 +129,25 @@ function test_tictactoe_newGameAfterDraw() {
     assertEqual(bot.reply.error, undefined);
     assertEqual(bot.reply.message, 'tictactoe started.');
 }
+
+function test_tictactoe_quit() {
+    console.log('test_tictactoe_quit()');
+    const bot = new TestBot();
+    bot.send('play tictactoe', 'alice');
+    bot.send('join x', 'alice');
+    bot.send('join o', 'bob');
+    bot.send('start', 'alice');
+    bot.send('move 1', 'alice');
+    bot.send('quit', 'alice');
+    assertEqual(bot.reply.error, undefined);
+    assertEqual(bot.reply.message, 'Are you sure you want to quit? [y/n]');
+    bot.send('y', 'alice');
+    assertEqual(bot.reply.error, undefined);
+    assertEqual(bot.reply.message, 'tictactoe stopped');
+    bot.send('play tictactoe', 'alice');
+    assertEqual(bot.reply.error, undefined);
+    assertEqual(bot.reply.message, 'tictactoe started.');
+}
     
 function test_unloaded_command() {
     console.log('test_unloaded_command()');
@@ -177,6 +196,7 @@ function runTests() {
     test_tictactoe_moveTwice();
     test_tictactoe_winX();
     test_tictactoe_newGameAfterDraw();
+    test_tictactoe_quit();
 
     /* Error paths */
     test_unloaded_command();
