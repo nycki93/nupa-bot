@@ -109,6 +109,35 @@ function test_tictactoe_winX() {
     );
 }
 
+function test_tictactoe_newGameAfterDraw() {
+    console.log('test_tictactoe_newGameAfterDraw()');
+    const bot = new TestBot();
+    bot.send('', 'alice', 'play tictactoe');
+    bot.send('', 'alice', 'join x');
+    bot.send('', 'bob', 'join o');
+    bot.send('', 'alice', 'start');
+    bot.send('', 'alice', 'move 1');
+    bot.send('', 'bob', 'move 2');
+    bot.send('', 'alice', 'move 3');
+    bot.send('', 'bob', 'move 4');
+    bot.send('', 'alice', 'move 5');
+    bot.send('', 'bob', 'move 6');
+    bot.send('', 'alice', 'move 7');
+    bot.send('', 'bob', 'move 8');
+    bot.send('', 'alice', 'move 9');
+    bot.send('', 'alice', 'play tictactoe');
+    assertEqual(bot.reply.error, undefined);
+    assertEqual(bot.reply.message, 'tictactoe started.');
+}
+    
+function test_unloaded_command() {
+    console.log('test_unloaded_command()');
+    const bot = new TestBot();
+    bot.send('test_room', 'alice', 'join x');
+    assertEqual(bot.reply.message, undefined);
+    assertEqual(bot.reply.error, 'Unrecognized command "join".');
+}
+
 function test_tictactoe_wrongPlayer() {
     console.log('test_tictactoe_wrongPlayer()');
     const bot = new TestBot();
@@ -140,14 +169,6 @@ function test_tictactoe_errorWhenCharacterDoesNotExist() {
     assertEqual(bot.reply.error, 'Options: X, O.');
 }
 
-function test_unloaded_command() {
-    console.log('test_unloaded_command()');
-    const bot = new TestBot();
-    bot.send('test_room', 'alice', 'join x');
-    assertEqual(bot.reply.message, undefined);
-    assertEqual(bot.reply.error, 'Unrecognized command "join".');
-}
-
 function runTests() {
     /* Happy paths */
     test_ping();
@@ -155,12 +176,13 @@ function runTests() {
     test_tictactoe_moveOnce();
     test_tictactoe_moveTwice();
     test_tictactoe_winX();
+    test_tictactoe_newGameAfterDraw();
 
     /* Error paths */
+    test_unloaded_command();
     test_tictactoe_wrongPlayer();
     test_tictactoe_errorWhenJoiningOccupiedSeat();
     test_tictactoe_errorWhenCharacterDoesNotExist();
-    test_unloaded_command();
 
     console.log("All tests OK.");
     process.exit(0);

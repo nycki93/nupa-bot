@@ -28,9 +28,9 @@ function consoleMain()
         });
         state = newState;
         if (reply.message) {
-            rl.write(reply.message);
+            console.log(reply.message);
         } else if (reply.error) {
-            rl.write('[ERROR] ' + reply.error);
+            console.log('[ERROR] ' + reply.error);
         }
     });
 }
