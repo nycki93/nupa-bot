@@ -1,7 +1,8 @@
 export type Query = {
     text: string,
     args?: string[],
-    user: string,
+    userId: string,
+    userName: string,
 };
 
 export type Reply = {

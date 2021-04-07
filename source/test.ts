@@ -16,7 +16,7 @@ class TestBot {
     send(text: string, user: string = 'test_user') {
         const { state, reply } = mainCommand({ 
             state: this.state,
-            query: { text, user },
+            query: { text, userId: user, userName: user },
         });
         this.state = state || this.state,
         this.reply = reply;
