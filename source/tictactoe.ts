@@ -25,8 +25,7 @@ const LINES = [
     [2, 4, 6],
 ];
 
-function display(state: TictactoeState, banner='') {
-    const { board } = state;
+function display(board: Array<' '|'X'|'O'>, banner?: string) {
     let result = (''
         + ' ' + board[0] + ' | ' + board[1] + ' | ' + board[2] + ' \n'
         + '---+---+---\n'
@@ -40,8 +39,7 @@ function display(state: TictactoeState, banner='') {
     return result;
 }
 
-function checkWinner(state: TictactoeState) {
-    const { board } = state;
+function checkWinner(board: Array<' '|'X'|'O'>) {
     for (const [i, j, k] of LINES) {
         if (board[i] !== board[j]) continue;
         if (board[i] !== board[k]) continue;
@@ -90,14 +88,14 @@ function start(params: {
     state: TictactoeState, reply: Reply,
 } {
     const { state, query } = params;
-    const newState = { ...state,
-        context: 'PLAYING' as const,
-        board: Array(9).fill(' '),
-        turn: 'X' as const,
-    };
+    const board = Array(9).fill(' ');
     return {
-        state: newState,
-        reply: { message: display(newState) },
+        state: { ...state,
+            context: 'PLAYING' as const,
+            board,
+            turn: 'X' as const,
+        },
+        reply: { message: display(board) },
     }
 }
 
@@ -123,25 +121,32 @@ function move(params: {
         state,
         reply: { error: 'That position is already occupied!' },
     };
-    const newBoard = [...state.board];
-    newBoard[position-1] = state.turn;
-    const newTurn = (state.turn === 'X' ? 'O' as const : 'X' as const);
-    const newState = { ...state, 
-        board: newBoard,
-        turn: newTurn,
-    };
-    const winner = checkWinner(newState);
+    const board = [...state.board];
+    board[position-1] = state.turn;
+    const turn = (state.turn === 'X' ? 'O' as const : 'X' as const);
+    const winner = checkWinner(board);
     if (!winner) return {
-        state: newState,
-        reply: { message: display(newState) },
+        state: { ...state, 
+            board: board,
+            turn: turn,
+        },
+        reply: { message: display(board) },
     };
     if (winner === 'DRAW') return {
-        state: newState,
-        reply: { message: display(newState, 'The game is a draw.') },
+        state: { ...state, 
+            board: board,
+            turn: turn, 
+            context: 'EXIT' as const,
+        },
+        reply: { message: display(board, 'The game is a draw.') },
     };
     return {
-        state: newState,
-        reply: { message: display(newState, winner + ' is the winner!') },
+        state: { ...state, 
+            board: board,
+            turn: turn, 
+            context: 'EXIT' as const,
+        },
+        reply: { message: display(board, winner + ' is the winner!') },
     };
 }
 
