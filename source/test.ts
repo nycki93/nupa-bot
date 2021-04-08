@@ -23,6 +23,8 @@ class TestBot {
     }
 }
 
+/* Happy Paths */
+
 function test_ping() {
     console.log('test_ping()');
     const bot = new TestBot();
@@ -129,6 +131,27 @@ function test_tictactoe_newGameAfterDraw() {
     assertEqual(bot.reply.error, undefined);
     assertEqual(bot.reply.message, 'tictactoe started.');
 }
+
+function test_tictactoe_quit() {
+    console.log('test_tictactoe_quit()');
+    const bot = new TestBot();
+    bot.send('play tictactoe', 'alice');
+    bot.send('join x', 'alice');
+    bot.send('join o', 'bob');
+    bot.send('start', 'alice');
+    bot.send('move 1', 'alice');
+    bot.send('quit', 'alice');
+    assertEqual(bot.reply.error, undefined);
+    assertEqual(bot.reply.message, 'Are you sure you want to quit? [y/n]');
+    bot.send('y', 'alice');
+    assertEqual(bot.reply.error, undefined);
+    assertEqual(bot.reply.message, 'tictactoe stopped.');
+    bot.send('play tictactoe', 'alice');
+    assertEqual(bot.reply.error, undefined);
+    assertEqual(bot.reply.message, 'tictactoe started.');
+}
+
+/* Error Paths */
     
 function test_unloaded_command() {
     console.log('test_unloaded_command()');
@@ -170,15 +193,16 @@ function test_tictactoe_errorWhenCharacterDoesNotExist() {
 }
 
 function runTests() {
-    /* Happy paths */
+    /* Happy Paths */
     test_ping();
     test_tictactoe_blankBoard();
     test_tictactoe_moveOnce();
     test_tictactoe_moveTwice();
     test_tictactoe_winX();
     test_tictactoe_newGameAfterDraw();
+    test_tictactoe_quit();
 
-    /* Error paths */
+    /* Error Paths */
     test_unloaded_command();
     test_tictactoe_wrongPlayer();
     test_tictactoe_errorWhenJoiningOccupiedSeat();
