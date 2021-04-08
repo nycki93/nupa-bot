@@ -200,7 +200,7 @@ function runTests() {
     test_tictactoe_moveTwice();
     test_tictactoe_winX();
     test_tictactoe_newGameAfterDraw();
-    //test_tictactoe_quit();
+    test_tictactoe_quit();
 
     /* Error Paths */
     test_unloaded_command();

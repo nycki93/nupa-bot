@@ -11,6 +11,7 @@ export const Text = {
     BAD_COMMAND: (cmd: string) => 'Unrecognized command "' + cmd + '".',
     PONG: 'pong!',
     APP_STARTED: (app: string) => app + ' started.',
+    APP_STOPPED: (app: string) => app + ' stopped.',
 }
 
 function ping(params: {
@@ -49,7 +50,10 @@ function quit(params: {
 }): {
     state: MainState, reply: Reply
 } {
-    return { state: params.state, reply: {} };
+    return {
+        state: { ...params.state, context: 'QUIT_CONFIRM' },
+        reply: { message: 'Are you sure you want to quit? [y/n]' },
+    }
 }
 
 function quitConfirm(params: { 
@@ -57,7 +61,20 @@ function quitConfirm(params: {
 }): { 
     state: MainState, reply: Reply,
 } {
-    return;
+    const { state, query } = params;
+    if (query.args[0] === 'y') return {
+        state: { ...state,
+            context: 'INIT',
+            app: undefined,
+            appState: undefined,
+        },
+        reply: { message: Text.APP_STOPPED(state.app) },
+    }
+    if (query.args[0] === 'n') return {
+        state: { ...state, context: 'PLAYING' },
+        reply: { message: 'Nevermind.' },
+    }
+    return quit({ state, query });
 }
 
 function appCommand(params: {
@@ -100,10 +117,8 @@ export const mainCommand = function(params:{
     if (state.context === 'PLAYING') {
         if (keyword === 'ping') return ping({ state, query });
         if (keyword === 'quit') return quit({ state, query });
-        if (state.app === 'tictactoe') {
-            const result = appCommand({ state, query });
-            if ( result.reply.error || result.reply.message ) return result;
-        } 
+        const result = appCommand({ state, query });
+        if ( result.reply.error || result.reply.message ) return result; 
     }
     if (state.context === 'QUIT_CONFIRM') return quitConfirm({ state, query });
     return {
