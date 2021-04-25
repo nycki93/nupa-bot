@@ -27,9 +27,9 @@ function consoleMain()
             query: { userId: 'console', userName: 'console', text: line },
         });
         state = newState;
-        if (reply.message) {
+        if (reply.type === 'MESSAGE') {
             console.log(reply.message);
-        } else if (reply.error) {
+        } else if (reply.type === 'ERROR') {
             console.log('[ERROR] ' + reply.error);
         }
     });
@@ -65,9 +65,9 @@ function discordMain(config: {
             }
         });
         state = newState;
-        if (reply.message) {
+        if (reply.type === 'MESSAGE') {
             message.channel.send('```' + reply.message + '```');
-        } else if (reply.error) {
+        } else if (reply.type === 'ERROR') {
             message.channel.send('```[ERROR] ' + reply.error + '```');
         }
     });

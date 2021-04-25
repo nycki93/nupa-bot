@@ -1,4 +1,4 @@
-import { Query, Reply } from './types';
+import { Query, ActionMessage, Action } from './types';
 import { tictactoeCommand, TictactoeState } from './tictactoe';
 
 export interface MainState {
@@ -12,23 +12,25 @@ export const Text = {
     PONG: 'pong!',
     APP_STARTED: (app: string) => app + ' started.',
     APP_STOPPED: (app: string) => app + ' stopped.',
+    QUIT_PROMPT: 'Are you sure you want to quit? [y/n]',
+    QUIT_CANCELED: 'Nevermind.',
 }
 
 function ping(params: {
     state: MainState, query: Query,
 }): { 
-    state: MainState, reply: Reply 
+    state: MainState, reply: ActionMessage 
 } {
     return {
         state: params.state,
-        reply: { message: Text.PONG }
+        reply: { type: 'MESSAGE', message: Text.PONG }
     }
 };
 
 function play(params: {
     state: MainState, query: Query,
 }): {
-    state: MainState, reply: Reply,
+    state: MainState, reply: Action,
 } {
     const { state, query } = params;
     if (query.args[1] === 'tictactoe' && !state.app) return {
@@ -37,29 +39,29 @@ function play(params: {
             app: 'tictactoe',
             appState: { context: 'INIT' }, 
         },
-        reply: { message: Text.APP_STARTED('tictactoe')},
+        reply: { type: 'MESSAGE', message: Text.APP_STARTED('tictactoe')},
     };
     return {
         state,
-        reply: { error: Text.BAD_COMMAND(query.args[1]) },
+        reply: { type: 'ERROR', error: Text.BAD_COMMAND(query.args[1]) },
     }
 }
 
 function quit(params: {
     state: MainState, query: Query
 }): {
-    state: MainState, reply: Reply
+    state: MainState, reply: ActionMessage
 } {
     return {
         state: { ...params.state, context: 'QUIT_CONFIRM' },
-        reply: { message: 'Are you sure you want to quit? [y/n]' },
+        reply: { type: 'MESSAGE', message: Text.QUIT_PROMPT },
     }
 }
 
 function quitConfirm(params: { 
     state: MainState, query: Query, 
 }): { 
-    state: MainState, reply: Reply,
+    state: MainState, reply: ActionMessage,
 } {
     const { state, query } = params;
     if (query.args[0] === 'y') return {
@@ -68,11 +70,11 @@ function quitConfirm(params: {
             app: undefined,
             appState: undefined,
         },
-        reply: { message: Text.APP_STOPPED(state.app) },
+        reply: { type: 'MESSAGE', message: Text.APP_STOPPED(state.app) },
     }
     if (query.args[0] === 'n') return {
         state: { ...state, context: 'PLAYING' },
-        reply: { message: 'Nevermind.' },
+        reply: { type: 'MESSAGE', message: Text.QUIT_CANCELED },
     }
     return quit({ state, query });
 }
@@ -80,7 +82,7 @@ function quitConfirm(params: {
 function appCommand(params: {
     state: MainState, query: Query
 }): {
-    state: MainState, reply: Reply
+    state: MainState, reply: Action
 } {
     const { state, query } = params;
     const app = tictactoeCommand;
@@ -102,14 +104,14 @@ function appCommand(params: {
 export const mainCommand = function(params:{ 
     state: MainState, query: Query,
 }): {
-    state: MainState, reply: Reply,
+    state: MainState, reply: Action,
 } {
     const state = { ...params.state };
     state.context = state.context || 'INIT';
     const query = { ...params.query };
     query.args = query.args || query.text.split(/\s+/);
     const keyword = query.args[0];
-    let result: { state: MainState, reply: Reply };
+    let result: { state: MainState, reply: ActionMessage };
     if (state.context === 'INIT') {
         if (keyword === 'ping') return ping({ state, query });
         if (keyword === 'play') return play({ state, query });
@@ -117,12 +119,11 @@ export const mainCommand = function(params:{
     if (state.context === 'PLAYING') {
         if (keyword === 'ping') return ping({ state, query });
         if (keyword === 'quit') return quit({ state, query });
-        const result = appCommand({ state, query });
-        if ( result.reply.error || result.reply.message ) return result; 
+        return appCommand({ state, query });
     }
     if (state.context === 'QUIT_CONFIRM') return quitConfirm({ state, query });
     return {
         state, 
-        reply: { error: Text.BAD_COMMAND(query.args[0]) },
+        reply: { type: 'ERROR', error: Text.BAD_COMMAND(query.args[0]) },
     };
 };

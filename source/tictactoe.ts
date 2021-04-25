@@ -1,4 +1,4 @@
-import { Query, Reply } from './types';
+import { Query, ActionMessage, Action } from './types';
 
 export type TictactoeState = {
     context: 'INIT'|'PLAYING'|'EXIT'
@@ -55,7 +55,7 @@ function checkWinner(board: Array<' '|'X'|'O'>) {
 function join(params: {
     state: TictactoeState, query: Query,
 }) : {
-    state: TictactoeState, reply: Reply,
+    state: TictactoeState, reply: Action,
 } {
     const { state, query } = params;
     const choice = (query.args[1] || '').toUpperCase();
@@ -66,11 +66,11 @@ function join(params: {
     );
     if (query.args.length !== 2 || !piece) return {
         state,
-        reply: { error: Text.JOIN_USAGE }
+        reply: { type: 'ERROR', error: Text.JOIN_USAGE }
     }
     if (state.players && state.players[piece]) return {
         state,
-        reply: { error: 'That character is already claimed!' },
+        reply: { type: 'ERROR', error: 'That character is already claimed!' },
     }
     return {
         state: { ...state,
@@ -78,14 +78,17 @@ function join(params: {
                 [piece]: { id: query.userId, name: query.userName }
             },
         },
-        reply: { message: query.userName + ' claimed character ' + piece + '.' },
+        reply: { 
+            type: 'MESSAGE',
+            message: query.userName + ' claimed character ' + piece + '.' 
+        },
     }
 }
 
 function start(params: {
     state: TictactoeState, query: Query,
 }): {
-    state: TictactoeState, reply: Reply,
+    state: TictactoeState, reply: ActionMessage,
 } {
     const { state, query } = params;
     const board = Array(9).fill(' ');
@@ -95,22 +98,25 @@ function start(params: {
             board,
             turn: 'X' as const,
         },
-        reply: { message: display(board) },
+        reply: { type: 'MESSAGE', message: display(board) },
     }
 }
 
 function move(params: {
     state: TictactoeState, query: Query,
-}) {
+}) : {
+    state: TictactoeState, reply: Action,
+} {
     const { state, query } = params;
     const position = query.args.length === 2 && parseInt(query.args[1]);
     if (state.players[state.turn].id !== query.userId) return {
         state,
-        reply: { error: 'It is not your turn!' },
+        reply: { type: 'ERROR', error: 'It is not your turn!' },
     };
     if (!(position >= 1 && position <= 9)) return {
         state,
         reply: { 
+            type: 'ERROR',
             error: (''
                 + 'Usage: ' + query.args[0] + ' <position>\n'
                 + 'positions are from 1 (top left) to 9 (bottom right).'
@@ -119,7 +125,7 @@ function move(params: {
     };
     if (state.board[position-1] !== ' ') return {
         state,
-        reply: { error: 'That position is already occupied!' },
+        reply: { type: 'ERROR', error: 'That position is already occupied!' },
     };
     const board = [...state.board];
     board[position-1] = state.turn;
@@ -130,7 +136,7 @@ function move(params: {
             board: board,
             turn: turn,
         },
-        reply: { message: display(board) },
+        reply: { type: 'MESSAGE', message: display(board) },
     };
     if (winner === 'DRAW') return {
         state: { ...state, 
@@ -138,7 +144,10 @@ function move(params: {
             turn: turn, 
             context: 'EXIT' as const,
         },
-        reply: { message: display(board, 'The game is a draw.') },
+        reply: { 
+            type: 'MESSAGE', 
+            message: display(board, 'The game is a draw.'),
+        },
     };
     return {
         state: { ...state, 
@@ -146,14 +155,17 @@ function move(params: {
             turn: turn, 
             context: 'EXIT' as const,
         },
-        reply: { message: display(board, winner + ' is the winner!') },
+        reply: { 
+            type: 'MESSAGE',
+            message: display(board, winner + ' is the winner!'),
+        },
     };
 }
 
 export const tictactoeCommand = function(params: {
     state: TictactoeState, query: Query,
 }): {
-    state: TictactoeState, reply: Reply,
+    state: TictactoeState, reply: Action,
 } {
     const { state, query } = params;
     const keyword = query.args[0];
@@ -164,5 +176,5 @@ export const tictactoeCommand = function(params: {
     if (state.context === 'PLAYING') {
         if (keyword === 'move') return move({ state, query });
     }
-    return { state, reply: { } }
+    return { state, reply: { type: 'NONE' } }
 }

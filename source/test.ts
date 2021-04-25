@@ -1,5 +1,5 @@
 import { mainCommand, MainState } from './mainCommand.js';
-import { Reply } from './types.js';
+import { Action, ActionMessage } from './types.js';
 
 function assertEqual(actual: any, expected: any) {
     if (actual === expected) return;
@@ -7,9 +7,42 @@ function assertEqual(actual: any, expected: any) {
     console.error('Actual:\n' + actual);
     process.exit(1);
 }
+
+function assertMessage(action: Action, expected: string) {
+    if (action.type === 'MESSAGE') {
+        if (action.message === expected) return;
+        console.error('Expected Message: \n' + expected);
+        console.error('Actual Message:\n' + action.message);
+        process.exit(1);
+    } else if (action.type === 'ERROR') {
+        console.error('Unexpected error:');
+        console.error(action.error);
+        process.exit(1);
+    } else {
+        console.error('Expected Message, but got: ' + action.type);
+        process.exit(1);
+    }
+}
+
+function assertError(action: Action, expected: string) {
+    if (action.type === 'ERROR') {
+        if (action.error === expected) return;
+        console.error('Expected Error:\n' + expected);
+        console.error('Actual Error:\n' + action.error);
+        process.exit(1);
+    } else if (action.type === 'MESSAGE') {
+        console.error('Expected Error:\n' + expected);
+        console.error('But instead, received message:\n' + action.message);
+        process.exit(1);
+    } else {
+        console.error('Expected Error, but got ' + action.type);
+        process.exit(1);
+    }
+}
+
 class TestBot {
     state: MainState;
-    reply: Reply;
+    reply: Action;
     constructor() {
         this.state = {};
     }
@@ -29,8 +62,7 @@ function test_ping() {
     console.log('test_ping()');
     const bot = new TestBot();
     bot.send('ping', 'test_user');
-    assertEqual(bot.reply.error, undefined);
-    assertEqual(bot.reply.message, 'pong!');
+    assertMessage(bot.reply, 'pong!');
 }
 
 function test_tictactoe_blankBoard() {
@@ -40,8 +72,7 @@ function test_tictactoe_blankBoard() {
     bot.send('join x', 'alice');
     bot.send('join o', 'bob');
     bot.send('start', 'alice');
-    assertEqual(bot.reply.error, undefined);
-    assertEqual(bot.reply.message, ''
+    assertMessage(bot.reply, ''
         + '   |   |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
@@ -58,8 +89,7 @@ function test_tictactoe_moveOnce() {
     bot.send('join o', 'alice');
     bot.send('start', 'alice');
     bot.send('move 2', 'alice');
-    assertEqual(bot.reply.error, undefined);
-    assertEqual(bot.reply.message, ''
+    assertMessage(bot.reply, ''
         + '   | X |   \n'
         + '---+---+---\n'
         + '   |   |   \n'
@@ -77,8 +107,7 @@ function test_tictactoe_moveTwice() {
     bot.send('start', 'bob');
     bot.send('move 5', 'bob');
     bot.send('move 1', 'alice');
-    assertEqual(bot.reply.error, undefined);
-    assertEqual(bot.reply.message, ''
+    assertMessage(bot.reply, ''
         + ' O |   |   \n'
         + '---+---+---\n'
         + '   | X |   \n'
@@ -99,8 +128,7 @@ function test_tictactoe_winX() {
     bot.send('move 2', 'alice');
     bot.send('move 9', 'bob');
     bot.send('move 1', 'alice');
-    assertEqual(bot.reply.error, undefined);
-    assertEqual(bot.reply.message, ''
+    assertMessage(bot.reply, ''
         + ' X | X | X \n'
         + '---+---+---\n'
         + '   | O |   \n'
@@ -128,8 +156,7 @@ function test_tictactoe_newGameAfterDraw() {
     bot.send('move 8', 'bob');
     bot.send('move 9', 'alice');
     bot.send('play tictactoe', 'alice');
-    assertEqual(bot.reply.error, undefined);
-    assertEqual(bot.reply.message, 'tictactoe started.');
+    assertMessage(bot.reply, 'tictactoe started.');
 }
 
 function test_tictactoe_quit() {
@@ -141,14 +168,11 @@ function test_tictactoe_quit() {
     bot.send('start', 'alice');
     bot.send('move 1', 'alice');
     bot.send('quit', 'alice');
-    assertEqual(bot.reply.error, undefined);
-    assertEqual(bot.reply.message, 'Are you sure you want to quit? [y/n]');
+    assertMessage(bot.reply, 'Are you sure you want to quit? [y/n]');
     bot.send('y', 'alice');
-    assertEqual(bot.reply.error, undefined);
-    assertEqual(bot.reply.message, 'tictactoe stopped.');
+    assertMessage(bot.reply, 'tictactoe stopped.');
     bot.send('play tictactoe', 'alice');
-    assertEqual(bot.reply.error, undefined);
-    assertEqual(bot.reply.message, 'tictactoe started.');
+    assertMessage(bot.reply, 'tictactoe started.');
 }
 
 /* Error Paths */
@@ -157,8 +181,7 @@ function test_unloaded_command() {
     console.log('test_unloaded_command()');
     const bot = new TestBot();
     bot.send('join x', 'alice');
-    assertEqual(bot.reply.message, undefined);
-    assertEqual(bot.reply.error, 'Unrecognized command "join".');
+    assertError(bot.reply, 'Unrecognized command "join".');
 }
 
 function test_tictactoe_wrongPlayer() {
@@ -169,8 +192,7 @@ function test_tictactoe_wrongPlayer() {
     bot.send('join o', 'bob');
     bot.send('start', 'bob');
     bot.send('move 5', 'bob');
-    assertEqual(bot.reply.message, undefined);
-    assertEqual(bot.reply.error, 'It is not your turn!');
+    assertError(bot.reply, 'It is not your turn!');
 }
 
 function test_tictactoe_errorWhenJoiningOccupiedSeat() {
@@ -179,8 +201,7 @@ function test_tictactoe_errorWhenJoiningOccupiedSeat() {
     bot.send('play tictactoe', 'alice');
     bot.send('join x', 'alice');
     bot.send('join x', 'bob');
-    assertEqual(bot.reply.message, undefined);
-    assertEqual(bot.reply.error, 'That character is already claimed!');
+    assertError(bot.reply, 'That character is already claimed!');
 }
 
 function test_tictactoe_errorWhenCharacterDoesNotExist() {
@@ -188,8 +209,7 @@ function test_tictactoe_errorWhenCharacterDoesNotExist() {
     const bot = new TestBot();
     bot.send('play tictactoe', 'alice');
     bot.send('join q', 'bob');
-    assertEqual(bot.reply.message, undefined);
-    assertEqual(bot.reply.error, 'Options: X, O.');
+    assertError(bot.reply, 'Options: X, O.');
 }
 
 function runTests() {
