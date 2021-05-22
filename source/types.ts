@@ -11,7 +11,12 @@ export interface EffectWrite {
     text: string,
 }
 
-export type Effect = EffectNone | EffectRead | EffectWrite;
+export interface EffectRoll {
+    type: 'roll',
+    max: number,
+}
+
+export type Effect = EffectNone | EffectRead | EffectWrite | EffectRoll;
 
 export interface ReportNone {
     type: 'none',
@@ -24,4 +29,9 @@ export interface ReportMessage {
     text: string,
 }
 
-export type Report = ReportNone | ReportMessage;
+export interface ReportRoll {
+    type: 'roll',
+    value: number,
+}
+
+export type Report = ReportNone | ReportMessage | ReportRoll;

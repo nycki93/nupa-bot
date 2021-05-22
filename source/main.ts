@@ -1,7 +1,7 @@
 import * as discord from 'discord.js';
 import * as fs from 'fs';
 import * as readline from 'readline';
-import { init } from './mainCommand';
+import { init } from './bot';
 import { Effect, Report } from './types';
 
 function readWriteConfig(path = 'config.json') {

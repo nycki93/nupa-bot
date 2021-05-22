@@ -14,3 +14,13 @@ export function* init(): Generator<Effect, never, Report> {
         }
     }
 }
+
+export function* guessingGame(): Generator<Effect, Report, Report> {
+    let report = yield { type: 'roll', max: 100 };
+    if (report.type !== 'roll') throw Error('Expected roll.');
+    const secret = report.value;
+    yield { type: 'write', text: 'Guess my number!' };
+    while (true) {
+        
+    }
+}
