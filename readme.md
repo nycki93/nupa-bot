@@ -1,17 +1,33 @@
 ## Set-up
 
-- Install NodeJS v14+ on the host machine.
-- Run:
+- Install NodeJS from https://nodejs.org/. Must be version 14 or greater.
+- On windows, install git with https://gitforwindows.org/.
+- In your terminal, type
+```
+git clone https://github.com/nupanick/nupa-bot.git
+```
+- This will download the code to a subdirectory named `nupa-bot`. Switch to this directory, then run these commands once:
 ```
 npm install
-npm run build
 npm start
 ```
-- A file called "config.json" should be generated. Do not commit this file!
-- Go to discord.com/developers and locate your bot token. Copy it to config.json where indicated.
+- Type Ctrl-c to quit the program.
+- A file called "config.json" should be generated. **Do not commit this file!**
 
-## Run
+## Unit Tests
+
+```
+npm test
+```
+
+## Run in offline mode (local terminal)
 
 ```
 npm start
+```
+
+## Run in discord mode
+
+```
+npm run discord
 ```
