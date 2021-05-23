@@ -30,7 +30,7 @@ async function consoleMain() {
     rl.on('line', line => {
         const [user, text] = line.split(': !', 2);
         if (!text) {
-            console.log('Input must be of the form user: !command.');
+            console.log('Input must be of the form: \'user: !command\'');
             return;
         }
         const report: Report = {
