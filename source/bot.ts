@@ -12,7 +12,8 @@ export function* init(): Generator<Effect, never, Report> {
         if (report?.type === 'message') {
             const args = report.text.trim().split(/\s+/);
             if (args[0] === 'ping') {
-                report = yield { type: 'write', text: Text.PONG };
+                yield { type: 'write', text: Text.PONG };
+                report = yield { type: 'read' };
                 continue;
             }
             if (args[0] === 'play') {
@@ -20,18 +21,27 @@ export function* init(): Generator<Effect, never, Report> {
                 report = yield { type: 'write', text: 'guessing game started.' };
                 continue;
             }
+            if (!app) {
+                yield { type: 'write', text: 'Unknown command.' };
+                report = yield { type: 'read' };
+                continue;
+            }
         }
-        if (!app) {
-            throw TypeError(`Expected message, but got ${report?.type}.`);
-        }
-        appState = app.next(report);
-        if (appState.done) {
-            app = null;
-            appState = null;
-            report = yield { type: 'write', text: 'guessing game stopped.' }
+        if (app) {
+            appState = app.next(report);
+            if (appState.done) {
+                app = null;
+                appState = null;
+                yield { type: 'write', text: 'guessing game stopped.' }
+                continue;
+            }
+            report = yield appState.value;
             continue;
         }
-        report = yield appState.value;
+        if (report) {
+            throw TypeError(`Expected message, but got ${report?.type}.`);
+        }
+        report = yield { type: 'read' };
     }
 }
 
@@ -39,7 +49,8 @@ function* guessingGame(): Generator<Effect, null, Report> {
     let report = yield { type: 'roll', max: 100 };
     if (report.type !== 'roll') throw Error('Expected roll.');
     const secret = report.value;
-    yield { type: 'write', text: 'Guess my number!' };
+    yield { type: 'write', text: "I'm thinking of a number between 1 and 100." };
+    yield { type: 'write', text: 'Options: guess <number>' };
     while (true) {
         const report = yield { type: 'read' };
         if (report.type !== 'message') {

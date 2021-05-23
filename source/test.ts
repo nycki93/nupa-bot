@@ -55,6 +55,21 @@ function test_ping() {
     assertWrite(t.value, 'pong!');
 }
 
+function test_ping_twice() {
+    console.log('test_ping_twice()');
+    const bot = init();
+    let t = bot.next();
+    assertRead(t.value);
+    t = bot.next(chat('user2: !ping'));
+    assertWrite(t.value, 'pong!');
+    t = bot.next();
+    assertRead(t.value);
+    t = bot.next(chat('user2: !ping'));
+    assertWrite(t.value, 'pong!');
+    t = bot.next();
+    assertRead(t.value);
+}
+
 function test_guessing_start() {
     console.log('test_guessing_start()');
     const bot = init();
@@ -65,7 +80,35 @@ function test_guessing_start() {
     t = bot.next();
     assertRoll(t.value, 100);
     t = bot.next(riggedRoll(7));
-    assertWrite(t.value, 'Guess my number!');
+    assertWrite(t.value, "I'm thinking of a number between 1 and 100.");
+    t = bot.next();
+    assertWrite(t.value, 'Options: guess <number>');
+    t = bot.next();
+}
+
+function test_guessing_ping() {
+    console.log('test_guessing_ping()');
+    const bot = init();
+    let t = bot.next();
+    assertRead(t.value);
+    t = bot.next(chat('alice: !play guess'));
+    assertWrite(t.value, 'guessing game started.');
+    t = bot.next();
+    assertRoll(t.value, 100);
+    t = bot.next(riggedRoll(7));
+    assertWrite(t.value, "I'm thinking of a number between 1 and 100.");
+    t = bot.next();
+    assertWrite(t.value, 'Options: guess <number>');
+    t = bot.next();
+    assertRead(t.value);
+    t = bot.next(chat('alice: !ping'));
+    assertWrite(t.value, 'pong!');
+    t = bot.next();
+    assertRead(t.value);
+    t = bot.next(chat('alice: !guess 50'));
+    assertWrite(t.value, 'Too high!');
+    t = bot.next();
+    assertRead(t.value);
 }
 
 function test_guessing_win() {
@@ -78,7 +121,9 @@ function test_guessing_win() {
     t = bot.next();
     assertRoll(t.value, 100);
     t = bot.next(riggedRoll(77));
-    assertWrite(t.value, 'Guess my number!');
+    assertWrite(t.value, "I'm thinking of a number between 1 and 100.");
+    t = bot.next();
+    assertWrite(t.value, 'Options: guess <number>');
     t = bot.next();
     assertRead(t.value);
     t = bot.next(chat('alice: !guess 50'));
@@ -105,7 +150,9 @@ function test_guessing_usage() {
     t = bot.next();
     assertRoll(t.value, 100);
     t = bot.next(riggedRoll(77));
-    assertWrite(t.value, 'Guess my number!');
+    assertWrite(t.value, "I'm thinking of a number between 1 and 100.");
+    t = bot.next();
+    assertWrite(t.value, 'Options: guess <number>');
     t = bot.next();
     assertRead(t.value);
     t = bot.next(chat('alice: !50'));
@@ -114,7 +161,9 @@ function test_guessing_usage() {
 
 function runTests() {
     test_ping();
+    test_ping_twice();
     test_guessing_start();
+    test_guessing_ping();
     test_guessing_win();
     test_guessing_usage();
     console.log("All tests OK.");

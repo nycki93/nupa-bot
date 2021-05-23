@@ -5,7 +5,12 @@ import { init } from './bot';
 import { Effect, Report } from './types';
 
 function readWriteConfig(path = 'config.json') {
-    const configJson = fs.readFileSync(path).toString();
+    let configJson: string;
+    try {
+        configJson = fs.readFileSync(path).toString();
+    } catch {
+        configJson = '{}';
+    }
     const defaults = {
         discord: {
             prefix: '!',
@@ -26,6 +31,7 @@ async function consoleMain() {
         const [user, text] = line.split(': !', 2);
         if (!text) {
             console.log('Input must be of the form user: !command.');
+            return;
         }
         const report: Report = {
             type: 'message',
@@ -57,7 +63,14 @@ async function consoleMain() {
         if (effect.type === 'write') {
             console.log(effect.text);
             t = bot.next();
+            continue;
         }
+        if (effect.type === 'roll') {
+            const report: Report = { type: 'roll', value: 69 };
+            t = bot.next(report);
+            continue;
+        }
+        throw TypeError(`Unhandled effect: ${effect.type}`);
     }
 }
 
@@ -76,12 +89,16 @@ async function discordMain(config: {
         process.exit(0);
     }
     const dc = new discord.Client;
-    const _channel = await dc.channels.fetch(channelId);
-    if (!_channel.isText) {
-        console.log('Please check that the configured channel accepts text messages.');
-        process.exit(0);
-    }
-    const channel = _channel as discord.TextChannel;
+
+    dc.once('ready', async () => {
+        const _c = await dc.channels.fetch(channelId);
+        if (!_c.isText) {
+            console.log('The configured channel does not appear to be a text channel.');
+            process.exit(0);
+        }
+        const channel = _c as discord.TextChannel;
+        channel.send('Bot started.');
+    });
 
     const messageBucket = [];
     let messageNext: Function = null;
@@ -101,26 +118,35 @@ async function discordMain(config: {
             messageBucket.push(report);
         }
     });
+
     dc.login(token);
 
     const generator: Generator<Effect> = init();
     let t = generator.next();
     while (!t.done) {
         const effect = t.value as Effect;
+        console.log(JSON.stringify(effect));
         if (effect.type === 'read') {
             if (messageBucket.length) {
-                generator.next(messageBucket.shift());
+                t = generator.next(messageBucket.shift());
                 continue;
             }
-            const report = await new Promise(resolve => {
-                messageNext = resolve;
-            });
-            generator.next(report);
+            const report = await new Promise(resolve => messageNext = resolve);
+            t = generator.next(report);
             continue;
         }
         if (effect.type === 'write') {
+            const channel = await dc.channels.fetch(channelId) as discord.TextChannel;
             channel.send('```' + effect.text + '```');
+            t = generator.next();
+            continue;
         }
+        if (effect.type === 'roll') {
+            const report: Report = { type: 'roll', value: 69 };
+            t = generator.next(report);
+            continue;
+        }
+        throw TypeError(`Unhandled effect: ${effect.type}`);
     }
 }
 
