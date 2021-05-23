@@ -46,6 +46,10 @@ function* guessingGame(): Generator<Effect, null, Report> {
             throw TypeError(`Expected message, but got ${report.type}.`);
         }
         const args = report.text.split(/\s+/);
+        if (args[0] != 'guess') {
+            yield { type: 'write', text: 'Options: guess <number>' };
+            continue;
+        }
         const guess = parseInt(args[1]);
         if (guess < secret) {
             yield { type: 'write', text: 'Too low!' };

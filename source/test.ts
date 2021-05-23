@@ -95,10 +95,28 @@ function test_guessing_win() {
     assertWrite(t.value, 'guessing game stopped.');
 }
 
+function test_guessing_usage() {
+    console.log('test_guessing_usage()');
+    const bot = init();
+    let t = bot.next();
+    assertRead(t.value);
+    t = bot.next(chat('alice: !play guess'));
+    assertWrite(t.value, 'guessing game started.');
+    t = bot.next();
+    assertRoll(t.value, 100);
+    t = bot.next(riggedRoll(77));
+    assertWrite(t.value, 'Guess my number!');
+    t = bot.next();
+    assertRead(t.value);
+    t = bot.next(chat('alice: !50'));
+    assertWrite(t.value, 'Options: guess <number>');
+}
+
 function runTests() {
     test_ping();
     test_guessing_start();
     test_guessing_win();
+    test_guessing_usage();
     console.log("All tests OK.");
     process.exit(0);
 }
