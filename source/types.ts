@@ -1,26 +1,37 @@
-export type Query = {
+export interface EffectNone {
+    type: 'none',
+}
+
+export interface EffectRead {
+    type: 'read',
+}
+
+export interface EffectWrite {
+    type: 'write',
     text: string,
-    args?: string[],
+}
+
+export interface EffectRoll {
+    type: 'roll',
+    max: number,
+}
+
+export type Effect = EffectNone | EffectRead | EffectWrite | EffectRoll;
+
+export interface ReportNone {
+    type: 'none',
+}
+
+export interface ReportMessage {
+    type: 'message',
     userId: string,
     userName: string,
-};
-
-export interface ActionMessage {
-    type: 'MESSAGE',
-    message: string,
+    text: string,
 }
 
-export interface ActionError {
-    type: 'ERROR',
-    error: string,
+export interface ReportRoll {
+    type: 'roll',
+    value: number,
 }
 
-export interface ActionQuit {
-    type: 'QUIT',
-}
-
-export interface ActionNone {
-    type: 'NONE',
-}
-
-export type Action = ActionMessage | ActionError | ActionQuit | ActionNone;
+export type Report = ReportNone | ReportMessage | ReportRoll;
