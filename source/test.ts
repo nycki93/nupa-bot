@@ -61,15 +61,44 @@ function test_guessing_start() {
     let t = bot.next();
     assertRead(t.value);
     t = bot.next(chat('alice: !play guess'));
+    assertWrite(t.value, 'guessing game started.');
+    t = bot.next();
     assertRoll(t.value, 100);
     t = bot.next(riggedRoll(7));
     assertWrite(t.value, 'Guess my number!');
-    return bot;
+}
+
+function test_guessing_win() {
+    console.log('test_guessing_win()');
+    const bot = init();
+    let t = bot.next();
+    assertRead(t.value);
+    t = bot.next(chat('alice: !play guess'));
+    assertWrite(t.value, 'guessing game started.');
+    t = bot.next();
+    assertRoll(t.value, 100);
+    t = bot.next(riggedRoll(77));
+    assertWrite(t.value, 'Guess my number!');
+    t = bot.next();
+    assertRead(t.value);
+    t = bot.next(chat('alice: !guess 50'));
+    assertWrite(t.value, 'Too low!');
+    t = bot.next();
+    assertRead(t.value);
+    t = bot.next(chat('alice: !guess 100'));
+    assertWrite(t.value, 'Too high!');
+    t = bot.next();
+    assertRead(t.value);
+    t = bot.next(chat('alice: !guess 77'));
+    assertWrite(t.value, "That's exactly right!");
+    t = bot.next();
+    assertWrite(t.value, 'guessing game stopped.');
 }
 
 function runTests() {
     test_ping();
-    // test_guessing_start();
+    test_guessing_start();
+    test_guessing_win();
     console.log("All tests OK.");
     process.exit(0);
 }
