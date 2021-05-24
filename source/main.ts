@@ -70,6 +70,15 @@ async function consoleMain() {
             t = bot.next(report);
             continue;
         }
+        if (effect.type === 'load app') {
+            try {
+                const m = await import(`./apps/${effect.app}.js`);
+                t = bot.next({ type: 'load app', app: m.default() });
+            } catch {
+                t = bot.next({ type: 'load app', app: null });
+            }
+            continue;
+        }
         throw TypeError(`Unhandled effect: ${effect.type}`);
     }
 }
@@ -100,8 +109,8 @@ async function discordMain(config: {
         channel.send('Bot started.');
     });
 
-    const messageBucket = [];
-    let messageNext: Function = null;
+    const eventBucket = [];
+    let eventNext: Function = null;
     dc.on('message', async message => {
         if (!message.content.startsWith(prefix)) return;
         if (message.channel.id !== channelId) return;
@@ -111,39 +120,48 @@ async function discordMain(config: {
             userName: message.member.displayName,
             text: message.content.slice(prefix.length),
         }
-        if (messageNext) {
-            messageNext(report);
-            messageNext = null;
+        if (eventNext) {
+            eventNext(report);
+            eventNext = null;
         } else {
-            messageBucket.push(report);
+            eventBucket.push(report);
         }
     });
 
     dc.login(token);
 
-    const generator: Generator<Effect> = init();
-    let t = generator.next();
+    const bot: Generator<Effect> = init();
+    let t = bot.next();
     while (!t.done) {
         const effect = t.value as Effect;
         console.log(JSON.stringify(effect));
         if (effect.type === 'read') {
-            if (messageBucket.length) {
-                t = generator.next(messageBucket.shift());
+            if (eventBucket.length) {
+                t = bot.next(eventBucket.shift());
                 continue;
             }
-            const report = await new Promise(resolve => messageNext = resolve);
-            t = generator.next(report);
+            const report = await new Promise(resolve => eventNext = resolve);
+            t = bot.next(report);
             continue;
         }
         if (effect.type === 'write') {
             const channel = await dc.channels.fetch(channelId) as discord.TextChannel;
             channel.send('```' + effect.text + '```');
-            t = generator.next();
+            t = bot.next();
             continue;
         }
         if (effect.type === 'roll') {
             const report: Report = { type: 'roll', value: 69 };
-            t = generator.next(report);
+            t = bot.next(report);
+            continue;
+        }
+        if (effect.type === 'load app') {
+            try {
+                const m = await import(`./apps/${effect.app}.js`);
+                t = bot.next({ type: 'load app', app: m.default() });
+            } catch {
+                t = bot.next({ type: 'load app', app: null });
+            }
             continue;
         }
         throw TypeError(`Unhandled effect: ${effect.type}`);

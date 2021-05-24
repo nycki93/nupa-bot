@@ -16,7 +16,12 @@ export interface EffectRoll {
     max: number,
 }
 
-export type Effect = EffectNone | EffectRead | EffectWrite | EffectRoll;
+export interface EffectLoadApp {
+    type: 'load app',
+    app: string,
+}
+
+export type Effect = EffectNone | EffectRead | EffectWrite | EffectRoll | EffectLoadApp;
 
 export interface ReportNone {
     type: 'none',
@@ -34,4 +39,9 @@ export interface ReportRoll {
     value: number,
 }
 
-export type Report = ReportNone | ReportMessage | ReportRoll;
+export interface ReportLoadApp {
+    type: 'load app',
+    app: Generator<Effect, null, Report>,
+}
+
+export type Report = ReportNone | ReportMessage | ReportRoll | ReportLoadApp;

@@ -1,5 +1,6 @@
 import { init } from './bot.js';
 import { Effect, Report } from './types.js';
+import guess from './apps/guess.js';
 
 function chat(chatStr: string): Report {
     const [user, text] = chatStr.split(': !', 2);
@@ -46,6 +47,17 @@ function assertRoll(actual: Effect, expectedMax: number) {
     }
 }
 
+function assertLoadApp(actual: Effect, expected: string) {
+    if (actual.type !== 'load app') {
+        console.error(`Expected load app, but got ${actual.type}.`);
+        process.exit(1);
+    }
+    if (actual.app !== expected) {
+        console.error(`Expected to load ${expected}, but loaded ${actual.app}.`);
+        process.exit(1);
+    }
+}
+
 function test_ping() {
     console.log('test_ping()');
     const bot = init();
@@ -76,6 +88,8 @@ function test_guessing_start() {
     let t = bot.next();
     assertRead(t.value);
     t = bot.next(chat('alice: !play guess'));
+    assertLoadApp(t.value, 'guess');
+    t = bot.next({ type: 'load app', app: guess() });
     assertWrite(t.value, 'guessing game started.');
     t = bot.next();
     assertRoll(t.value, 100);
@@ -92,6 +106,8 @@ function test_guessing_ping() {
     let t = bot.next();
     assertRead(t.value);
     t = bot.next(chat('alice: !play guess'));
+    assertLoadApp(t.value, 'guess');
+    t = bot.next({ type: 'load app', app: guess() });
     assertWrite(t.value, 'guessing game started.');
     t = bot.next();
     assertRoll(t.value, 100);
@@ -117,6 +133,8 @@ function test_guessing_win() {
     let t = bot.next();
     assertRead(t.value);
     t = bot.next(chat('alice: !play guess'));
+    assertLoadApp(t.value, 'guess');
+    t = bot.next({ type: 'load app', app: guess() });
     assertWrite(t.value, 'guessing game started.');
     t = bot.next();
     assertRoll(t.value, 100);
@@ -146,6 +164,8 @@ function test_guessing_usage() {
     let t = bot.next();
     assertRead(t.value);
     t = bot.next(chat('alice: !play guess'));
+    assertLoadApp(t.value, 'guess');
+    t = bot.next({ type: 'load app', app: guess() });
     assertWrite(t.value, 'guessing game started.');
     t = bot.next();
     assertRoll(t.value, 100);
@@ -159,6 +179,19 @@ function test_guessing_usage() {
     assertWrite(t.value, 'Options: guess <number>');
 }
 
+function test_nonexistent_app() {
+    console.log('test_nonexistent_app()');
+    const bot = init();
+    let t = bot.next();
+    assertRead(t.value);
+    t = bot.next(chat('alice: !play polybius'));
+    assertLoadApp(t.value, 'polybius');
+    t = bot.next({ type: 'load app', app: null });
+    assertWrite(t.value, 'Unable to load that app.');
+    t = bot.next();
+    assertRead(t.value);
+}
+
 function runTests() {
     test_ping();
     test_ping_twice();
@@ -166,6 +199,7 @@ function runTests() {
     test_guessing_ping();
     test_guessing_win();
     test_guessing_usage();
+    test_nonexistent_app();
     console.log("All tests OK.");
     process.exit(0);
 }
