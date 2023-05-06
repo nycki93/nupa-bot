@@ -55,7 +55,7 @@ function main() {
         let r: BotResponse;
         if (a0 === 'reload') {
             await m.channel.send('Shutting down.')
-            process.exitCode = 2;
+            process.exit(2);
         }
         if (bot.commands().includes(a0)) {
             try {
@@ -63,7 +63,7 @@ function main() {
             } catch (e) {
                 console.log(e);
                 await m.channel.send(`[CRASH]: ${e}`);
-                process.exitCode = 2;
+                process.exit(2);
             }
         }
         if (r && r.error) {
@@ -71,9 +71,6 @@ function main() {
         }
         if (r && r.message) {
             await m.channel.send(r.message);
-        }
-        if (process.exitCode) {
-            process.exit();
         }
     });
 

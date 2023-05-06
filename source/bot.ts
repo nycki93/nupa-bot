@@ -9,7 +9,6 @@ export interface BotResponse {
     message?: string,
     error?: string,
     quit?: boolean,
-    reload?: boolean,
 }
 
 export class Bot implements App {
