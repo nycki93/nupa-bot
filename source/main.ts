@@ -35,38 +35,45 @@ function main() {
         GatewayIntentBits.MessageContent,
     ]});
     const config = readWriteConfig();
-    const bot = new Bot();
+    let bot = new Bot();
 
     client.once(Events.ClientReady, async c => {
         console.log(`Connected as ${c.user.tag}`);
         const _ch = await c.channels.fetch(config.channel);
         if (!_ch.isTextBased) {
             console.log("Can't connect bot to non-text channel!");
-            process.exit(0);
+            process.exit(1);
         }
         const ch = _ch as TextChannel;
         const r = bot.init();
         ch.send(r.message);
     });
 
-    client.on(Events.MessageCreate, m => {
+    client.on(Events.MessageCreate, async m => {
         if (!m.content.startsWith('!')) return;
         const [a0, ...args] = m.content.slice('!'.length).split(/\s/);
+        let r: BotResponse;
+        if (a0 === 'reload') {
+            await m.channel.send('Shutting down.')
+            process.exitCode = 2;
+        }
         if (bot.commands().includes(a0)) {
-            let r: BotResponse;
             try {
                 r = bot.handle([a0, ...args]);
             } catch (e) {
                 console.log(e);
-                m.channel.send(`[CRASH]: ${e}`);
-                process.exit(0);
+                await m.channel.send(`[CRASH]: ${e}`);
+                process.exitCode = 2;
             }
-            if (r.error) {
-                m.channel.send(`[ERROR] ${r.error}`);
-            }
-            if (r.message) {
-                m.channel.send(r.message);
-            }
+        }
+        if (r && r.error) {
+            await m.channel.send(`[ERROR] ${r.error}`);
+        }
+        if (r && r.message) {
+            await m.channel.send(r.message);
+        }
+        if (process.exitCode) {
+            process.exit();
         }
     });
 
