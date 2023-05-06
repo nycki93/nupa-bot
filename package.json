@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "tsc && node ./build/test.js",
-    "start": "tsc && node ./build/main3.js console",
-    "discord": "tsc -t es6 && node ./build/main3.js discord"
+    "start": "tsc && node ./build/main.js console",
+    "discord": "tsc -t es6 && node ./build/main.js discord"
   },
   "author": "",
   "license": "ISC",
