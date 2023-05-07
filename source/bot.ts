@@ -1,4 +1,6 @@
-interface App { 
+import { TictactoeGame } from './tictactoe.js';
+
+export interface App { 
     init(): BotResponse,
     commands(): string[],
     help(args: string[]): BotResponse,
@@ -62,6 +64,9 @@ export class Bot implements App {
         if (a0 === 'guess') {
             this.game = new GuessingGame();
             return this.game.init();
+        } else if (a0 === 'tictactoe') {
+            this.game = new TictactoeGame();
+            return this.game.init();
         } else {
             return { message: 'Games available: guess' };
         }
@@ -72,7 +77,7 @@ class GuessingGame implements App {
     solution: number;
 
     init() {
-        this.solution = 69;
+        this.solution = (Math.random() * 100) | 0
         return { message: "Guessing game started! Guess my number with 'guess'." };
     }
 
