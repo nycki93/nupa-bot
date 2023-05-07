@@ -108,5 +108,5 @@ function getWinner(board: string[]) {
 }
 
 function isFull(board: string[]) {
-    return Boolean(board.find(a => !a));
+    return board.filter(a => a).length === 9;
 }

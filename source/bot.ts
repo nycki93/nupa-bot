@@ -30,13 +30,13 @@ export class Bot implements App {
 
     help([a0, ...args]: string[]) {
         if (a0 === 'ping') {
-            return { message: 'Check if the bot is running.' };
+            return { message: 'ping: Check if the bot is running.' };
         } else if (a0 === 'help') {
             return { message: 'Usage: help <command>' };
         } else if (this.game && this.game.commands().includes(a0)) {
             return this.game.help([a0, ...args]);
         } else if (!this.game && a0 === 'play') {
-            return { message: 'Start a game. Games available: guess' };
+            return { message: 'play: Start a game. Games available: guess, tictactoe' };
         } else {
             return { message: `Commands: ${this.commands().join(', ')}` };
         }
