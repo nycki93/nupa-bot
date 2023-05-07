@@ -1,10 +1,2 @@
-#/bin/sh
-while :
-do
-    npm run discord
-    if [ $? -ne 2 ]; then
-        break
-    fi
-    sleep 1
-done
-echo Exited with code $?.
+#!/bin/sh
+podman run -it -v $(pwd)/config.json:/usr/src/app/config.json nupa-bot:discord
