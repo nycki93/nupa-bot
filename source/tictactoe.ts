@@ -99,7 +99,11 @@ const lines = [
     [0, 4, 8], [2, 4, 6],
 ];
 function getWinner(board: string[]) {
-    const line = lines.find(([a, b, c]) => board[a] === board[b] && board[a] === board[c]);
+    const line = lines.find(([a, b, c]) => (
+        board[a]
+        && board[a] === board[b] 
+        && board[a] === board[c]
+    ));
     if (line) {
         return board[line[0]];
     } else {
