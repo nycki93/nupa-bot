@@ -1,4 +1,5 @@
 import * as fs from 'node:fs';
+import * as readline from 'readline/promises';
 import { fileURLToPath } from 'node:url';
 import { Client, Events, GatewayIntentBits, TextChannel } from 'discord.js';
 
@@ -28,7 +29,7 @@ function readWriteConfig(path = 'config.json') {
     return config;
 }
 
-function main() {
+function runDiscord() {
     const client = new Client({ intents: [ 
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
@@ -77,6 +78,43 @@ function main() {
     client.login(config.token);
 }
 
+async function runConsole() {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
+    const bot = new Bot();
+    const r: BotResponse = bot.init();
+    console.log(`<bot> ${r.message}`);
+    while (true) {
+        const m = await rl.question('<user> ');
+        if (!m.startsWith('!')) continue;
+        const [a0, ...args] = m.slice('!'.length).split(/\s/);
+        if (!bot.commands().includes(a0)) continue;
+        let r: BotResponse;
+        try {
+            r = bot.handle([a0, ...args]);
+        } catch (e) {
+            console.log(`[CRASH]: ${e}`);
+            process.exit(2);
+        }
+        if (r.message) {
+            console.log(r.message);
+        }
+        if (r.error) {
+            console.log(`[ERROR] ${r.error}`);
+        }
+        if (r.quit) {
+            break;
+        }
+    }
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-    main();
+    if (process.argv[2] === 'discord') {
+        runDiscord();
+    }
+    if (process.argv[2] === 'console') {
+        runConsole();
+    }
 }

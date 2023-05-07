@@ -7,7 +7,8 @@
   "scripts": {
     "test": "tsc && node ./build/test.js",
     "build": "tsc -t es6",
-    "discord": "node ./build/main.js discord"
+    "discord": "npm run build && node ./build/main.js discord",
+    "console": "npm run build && node ./build/main.js console"
   },
   "author": "",
   "license": "ISC",
