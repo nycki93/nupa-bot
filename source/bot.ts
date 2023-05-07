@@ -68,7 +68,7 @@ export class Bot implements App {
             this.game = new TictactoeGame();
             return this.game.init();
         } else {
-            return { message: 'Games available: guess' };
+            return { message: 'Games available: guess, tictactoe' };
         }
     }
 }
