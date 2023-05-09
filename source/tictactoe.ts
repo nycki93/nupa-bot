@@ -1,18 +1,27 @@
 import { App } from './bot.js';
 
+const AUTO = 1;
+type PlayerId = string | typeof AUTO;
+enum MODE { JOINING, PLAYING };
+
 export class TictactoeGame implements App {
     board = Array<string>(9);
+    players = { x: null as PlayerId, o: null as PlayerId };
+    mode = MODE.PLAYING;
 
     init() {
-        return { message: [
-            'Tictactoe Started.',
-            draw(this.board),
-            "move with 'play <location> <x|o>'"
-        ].join('\n')};
+        return this.start();
+        // return { message: "Waiting for players. Join a side with 'join <x|o>' or add a bot with 'auto <x|o>'." }
     }
 
     commands() {
-        return [ 'play', 'resign' ];
+        if (this.mode === MODE.JOINING) {
+            return [ 'join', 'auto' ];
+        } else if (this.mode === MODE.PLAYING) {
+            return [ 'play', 'resign' ];
+        } else {
+            throw Error(`Undefined mode ${this.mode} in TictactoeGame.`);
+        }
     }
 
     help([a0]) {
@@ -36,6 +45,14 @@ export class TictactoeGame implements App {
         } else {
             return { error: `Unknown command ${a0} in TictactoeGame.`};
         }
+    }
+
+    start() {
+        return { message: [
+            'Tictactoe Started.',
+            draw(this.board),
+            "move with 'play <location> <x|o>'"
+        ].join('\n')};
     }
 
     play([a0, a1, ...args]: string[]) {
